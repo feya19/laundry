@@ -1,0 +1,15 @@
+.close {
+    position: absolute;
+    right: 10px;
+    font-size: 25px;
+    font-weight: 700;
+    line-height: 1;
+    color: #000 !important;
+    text-shadow: 0 1px 0 #fff;
+    opacity: .2;
+    border: 0 !important;
+    -webkit-appearance: none !important;
+    padding: 0;
+    cursor: pointer;
+    background: 0 0;
+}
