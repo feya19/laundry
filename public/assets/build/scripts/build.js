@@ -24,6 +24,9 @@ $(function() {
             $('[data-toggle="tooltip"]', this).tooltip();
         }
     });
+    
+    changeLogo();
+    $("#theme-toggle").click(() => { changeLogo() });
 
     if ($('#sidebar .single-item a[href="'+window.location.href+'"]')) {
         $('#sidebar .single-item a[href="'+window.location.href+'"]').parent().addClass('active');
@@ -259,8 +262,17 @@ function ucwords(str) {
     });
 }
 
+function inArray(value, arr) {
+    var length = arr.length;
+    for(var i = 0; i < length; i++) {
+        if(arr[i] == value) return true;
+    }
+    return false;
+}
 
 function validation(errors){
+    $('.error_message').remove();
+    $('.is-invalid').removeClass('is-invalid');
     $.each(errors.errors, function(i, error){
         var errors = `<span class="invalid-feedback error_message" role="alert">
                         <strong>${error}</strong>
@@ -271,4 +283,14 @@ function validation(errors){
             $(`[name="${i}[]"]`).addClass('is-invalid').parent().append(errors);
         }
     });
+}
+
+function changeLogo(){
+    if($('body').hasClass("theme-dark")){
+        $('#logo-light').addClass('d-none');
+        $('#logo-dark').removeClass('d-none');
+    }else{
+        $('#logo-dark').addClass('d-none');
+        $('#logo-light').removeClass('d-none');
+    }
 }

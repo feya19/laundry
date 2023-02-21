@@ -5,7 +5,8 @@
 <div class="aside">
     <div class="aside-header" style="min-height: 5rem;max-height: 5rem">
         <a href="{{ route('home') }}" class="aside-title">
-            <img src="{{ asset('assets/images/logo.png') }}" alt="Logo" class="img-fluid" style="max-height: 4rem">
+            <img src="{{ asset('assets/images/logo_dark.png') }}" alt="Logo" class="img-fluid" id="logo-dark" style="max-height: 4rem">
+            <img src="{{ asset('assets/images/logo_light.png') }}" alt="Logo" class="img-fluid" id="logo-light" style="max-height: 4rem">
         </a>
         <div class="aside-addon">
             <button class="btn btn-label-primary btn-icon btn-lg" data-toggle="aside">
@@ -66,6 +67,14 @@
                         <a href="{{route('master.users.index')}}" class="menu-item-link">
                             <i class="menu-item-bullet"></i>
                             <span class="menu-item-text">Users</span>
+                        </a>
+                    </div>
+                    @endif
+                    @if(in_array('pelanggan', $master))
+                    <div class="menu-item">
+                        <a href="{{route('master.pelanggan.index')}}" class="menu-item-link">
+                            <i class="menu-item-bullet"></i>
+                            <span class="menu-item-text">Pelanggan</span>
                         </a>
                     </div>
                     @endif

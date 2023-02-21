@@ -4,11 +4,6 @@
     $header = false;
 @endphp
 @section('content')
-    <div class="container-fluid" style="padding: 80px 0px 0px 80px;">
-        <h1 class="page-header">
-            Pengaturan
-        </h1>
-    </div>
     <div class="container mt-5">
         <div class="panel panel-default">
             <div class="panel-body">
@@ -94,7 +89,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="confrimPw">Konfirmasi Password Baru</label>
-                                {!! Form::password('confirmed', ['class' => 'form-control', 'id' => 'confirmPw']) !!}
+                                {!! Form::password('confirmed', ['class' => 'form-control'.add_error($errors, 'confirmed'), 'id' => 'confirmPw']) !!}
                                 @error('confirmed')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>

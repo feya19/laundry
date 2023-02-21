@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\OutletRequest;
 use App\Models\Outlet;
 use Exception;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class OutletController extends Controller
@@ -18,7 +19,7 @@ class OutletController extends Controller
     {
         $title = 'Outlet';
         if(request()->ajax()){
-            $model = Outlet::orderBy('id');
+            $model = Outlet::query();
             return DataTables::of($model)
                 ->addColumn('_', function ($data){
                     $html = '<button class="btn btn-info btn-icon" type="button" onclick="show('.$data->id.')" title="Show"><i class="fas fa-eye"></i></button>'; 
@@ -43,7 +44,7 @@ class OutletController extends Controller
             return view('master.outlet.create');
         }catch(Exception $e){
             return response()->json([
-                'message' => 'Gagal Tambah Outlet',
+                'message' => 'Gagal Menambahkan Outlet',
             ], $e->getCode() ?: 500);
         }
     }
@@ -154,6 +155,7 @@ class OutletController extends Controller
      */
     public function destroy($id)
     {
+        DB::beginTransaction();
         try{
             $model = Outlet::find($id);
             if(!$model){
@@ -162,10 +164,12 @@ class OutletController extends Controller
                 ], 404);
             }
             $model->delete();
+            DB::commit();
             return response()->json([
                 'message' => 'Berhasil Menghapus Outlet'
             ], 200);
         }catch(Exception $e){
+            DB::rollBack();
             return response()->json([
                 'message' => 'Gagal Menghapus Outlet',
                 'error' => $e->getMessage()

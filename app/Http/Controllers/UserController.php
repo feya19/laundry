@@ -16,7 +16,7 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    const PROFILE_FOLDER = 'assets/upload_file';
+    const PROFILE_FOLDER = 'upload/profile';
 
     public function index() {
         $title = 'Users';
@@ -45,7 +45,7 @@ class UserController extends Controller
             return view('master.users.create', compact('roles'));
         }catch(Exception $e){
             return response()->json([
-                'message' => 'Gagal Tambah User',
+                'message' => 'Gagal Menambahkan User',
             ], $e->getCode() ?: 500);
         }
     }
@@ -55,31 +55,38 @@ class UserController extends Controller
         $data = [
             'username' => $post['username'],
             'password' => Hash::make($post['password']),
-            'name' => $post['name'],
+            'name' => $post['nama'],
             'role' => $post['role']
         ];
-        if (isset($post['file'])) {
-            $file = request()->file('file');
-            $filename = date('YmdHis') . '_' . uniqid() . '.' . $file->extension();
-            $file->move(public_path(self::PROFILE_FOLDER), $filename);
-
-            $data['photo'] = $filename;
-        }
-        if (User::create($data)) {
+        try{
+            if (isset($post['file'])) {
+                $file = request()->file('file');
+                $filename = date('YmdHis') . '_' . uniqid() . '.' . $file->extension();
+                $file->move(public_path(self::PROFILE_FOLDER), $filename);
+    
+                $data['photo'] = $filename;
+            }
+            User::create($data);
             return response()->json([
                 'message' => 'Berhasil Menambahkan User'
             ], 200);
-        }else{
+        }catch(Exception $e){
             return response()->json([
-                'message' => 'Gagal Menambahkan User'
-            ], 500);
+                'message' => 'Gagal Menambahkan User',
+            ], $e->getCode() ?: 500);
         }
-            
     }
 
     public function show($id) {
-        $model = User::findOrFail($id);
-        return view('master.users.show', compact('model'));
+        try{
+            $model = User::findOrFail($id);
+            return view('master.users.show', compact('model'));
+        }catch(Exception $e){
+            return response()->json([
+                'message' => 'User Gagal Ditampilkan',
+                'error' => $e->getMessage()
+            ], $e->getCode() ?: 500);
+        }
     }
 
     public function edit($id) {
@@ -95,48 +102,50 @@ class UserController extends Controller
         }
     }
 
-    public function update($post, $id) {
-        $model = User::findOrFail($id);
+    public function update(UserRequest $request, $id) {
+        $post = $request->validated();
         $data = [
             'username' => $post['username'],
-            'name' => $post['name'],
+            'name' => $post['nama'],
             'role' => $post['role']
         ];
-        if($post['password']){
-            $data['password'] = Hash::make($post['password']);
-        }
-        if (isset($post['file'])) {
-            if($model->photo){
-                $path = public_path(self::PROFILE_FOLDER).'/'.$model->photo;
-                if(file_exists($path))unlink($path);
+        try{
+            $model = User::findOrFail($id);
+            if (isset($post['password'])) $data['password'] = Hash::make($post['password']);
+            if (isset($post['file'])) {
+                if($model->photo){
+                    $path = public_path(self::PROFILE_FOLDER).'/'.$model->photo;
+                    if(file_exists($path))unlink($path);
+                }
+                $file = request()->file('file');
+                $filename = date('YmdHis') . '_' . uniqid() . '.' . $file->extension();
+                $file->move(public_path(self::PROFILE_FOLDER), $filename);
+    
+                $data['photo'] = $filename;
             }
-            $file = request()->file('file');
-            $filename = date('YmdHis') . '_' . uniqid() . '.' . $file->extension();
-            $file->move(public_path(self::PROFILE_FOLDER), $filename);
-
-            $data['photo'] = $filename;
-        }
-        if ($model->update($data)) {
+            $model->update($data);
             return response()->json([
                 'message' => 'Berhasil Memperbarui User'
             ], 200);
-        }else{
+        }catch(Exception $e){
             return response()->json([
-                'message' => 'Gagal Memperbarui User'
-            ], 200);
-        }               
+                'message' => 'Gagal Memperbarui User',
+                'error' => $e->getMessage()
+            ], $e->getCode() ?: 500);
+        }
     }
 
     public function destroy($id) {
-        $model = User::findOrFail($id);
-        if ($model->delete()) {
+        try{
+            $model = User::findOrfail($id);
+            $model->delete();
             return response()->json([
                 'message' => 'Berhasil Menghapus User'
             ], 200);
-        }else{
+        }catch(Exception $e){
             return response()->json([
-                'message' => 'Gagal Menghapus User'
-            ], 500);
-        }           
+                'message' => 'Gagal Edit User',
+            ], $e->getCode() ?: 500);
+        }        
     }
 }

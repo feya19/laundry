@@ -67,7 +67,6 @@
     }
 
     function store(){
-        $('.error_message').remove();
         axios.post('{{ route('master.produk.store') }}', $('#formCreate').serialize()).then((response) => {
             toastr.success('Success', response.data.message);
             dataTable.ajax.reload();
@@ -102,7 +101,6 @@
     function update(id){
         var url = '{{ route("master.produk.update", ":id") }}';
         url = url.replace(':id', id);
-        $('.error_message').remove();
         axios.patch(url, $('#formEdit').serialize()).then((response) => {
             toastr.success('Success', response.data.message);
             dataTable.ajax.reload();

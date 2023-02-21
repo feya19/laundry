@@ -24,7 +24,7 @@ class UserRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'username' => 'required|max:64|string|unique:users,username'.$this->users,
+            'username' => 'required|max:64|string|unique:users,username,'.$this->users,
             'nama' => 'required|string|max:255',
             'role' => 'required|in:admin,kasir,owner',
             'file' => 'max:2048|mimes:jpg,jpeg,png',

@@ -46,6 +46,13 @@
             </div>
 		</div>
 	</div>
+    <!-- BEGIN Float Button -->
+	<div class="float-btn float-btn-right">
+		<button class="btn btn-flat-primary btn-icon mb-2" id="theme-toggle" data-toggle="tooltip" data-placement="right" title="Change theme">
+			<i class="fa fa-moon"></i>
+		</button>
+	</div>
+	<!-- END Float Button -->
     <script src="{{asset('assets/build/scripts/mandatory.js')}}"></script>
     <script src="{{asset('assets/build/scripts/core.js')}}"></script>
     <script src="{{asset('assets/build/scripts/vendor.js')}}"></script>

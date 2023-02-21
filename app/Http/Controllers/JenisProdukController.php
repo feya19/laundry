@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\JenisProdukRequest;
 use App\Models\JenisProduk;
 use Exception;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class JenisProdukController extends Controller
@@ -18,7 +19,7 @@ class JenisProdukController extends Controller
     {
         $title = 'Jenis Produk';
         if(request()->ajax()){
-            $model = JenisProduk::orderBy('id');
+            $model = JenisProduk::query();
             return DataTables::of($model)
                 ->addColumn('_', function ($data){
                     $html = '<button class="btn btn-info btn-icon" type="button" onclick="show('.$data->id.')" title="Show"><i class="fas fa-eye"></i></button>'; 
@@ -43,7 +44,7 @@ class JenisProdukController extends Controller
             return view('master.jenis_produk.create');
         }catch(Exception $e){
             return response()->json([
-                'message' => 'Gagal Tambah Jenis Produk',
+                'message' => 'Gagal Menambahkan Jenis Produk',
             ], $e->getCode() ?: 500);
         }
     }
@@ -154,6 +155,7 @@ class JenisProdukController extends Controller
      */
     public function destroy($id)
     {
+        DB::beginTransaction();
         try{
             $model = JenisProduk::find($id);
             if(!$model){
@@ -162,10 +164,12 @@ class JenisProdukController extends Controller
                 ], 404);
             }
             $model->delete();
+            DB::commit();
             return response()->json([
                 'message' => 'Berhasil Menghapus Jenis Produk'
             ], 200);
         }catch(Exception $e){
+            DB::rollBack();
             return response()->json([
                 'message' => 'Gagal Menghapus Jenis Produk',
                 'error' => $e->getMessage()

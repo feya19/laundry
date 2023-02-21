@@ -212,4 +212,13 @@ return [
         // 'ExampleClass' => App\Example\ExampleClass::class,
     ])->toArray(),
 
+    'class' => [
+        'outlet' => 'App\Http\Controllers\OutletController',
+        'jenis_produk' => 'App\Http\Controllers\JenisProdukController',
+        'produk' => 'App\Http\Controllers\ProdukController',
+        'users' => 'App\Http\Controllers\UserController',
+        'pelanggan' => 'App\Http\Controllers\PelangganController',
+        'transaksi' => 'App\Http\Controllers\TransaksiController',
+        'report' => 'App\Http\Controllers\ReportController'
+    ]
 ];

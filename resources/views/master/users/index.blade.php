@@ -24,6 +24,9 @@
 @endsection
 @push('script')
 <script>
+    const headers = {
+        'Content-Type': 'multipart/form-data'
+    }
     var dataTatble;
     $(function(){
         dataTable = $('#table').DataTable({
@@ -65,8 +68,7 @@
     }
 
     function store(){
-        $('.error_message').remove();
-        axios.post('{{ route('master.users.store') }}', new FormData(document.getElementById('formCreate'))).then((response) => {
+        axios.post('{{ route('master.users.store') }}', new FormData(document.getElementById('formCreate')), headers).then((response) => {
             toastr.success('Success', response.data.message);
             dataTable.ajax.reload();
             bootbox.hideAll();
@@ -100,8 +102,10 @@
     function update(id){
         var url = '{{ route("master.users.update", ":id") }}';
         url = url.replace(':id', id);
-        $('.error_message').remove();
-        axios.patch(url, new FormData(document.getElementById('formEdit'))).then((response) => {
+        var data = new FormData(document.getElementById('formEdit'));
+        data.append('_method', 'PATCH');
+        data.append('users', id);
+        axios.post(url, data, headers).then((response) => {
             toastr.success('Success', response.data.message);
             dataTable.ajax.reload();
             bootbox.hideAll();

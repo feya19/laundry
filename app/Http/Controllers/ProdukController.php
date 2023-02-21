@@ -25,7 +25,7 @@ class ProdukController extends Controller
     {
         $title = 'Produk';
         if(request()->ajax()){
-            $model = Produk::with(['produkJenis.jenis', 'produkOutlet.outlet'])->orderBy('id');
+            $model = Produk::with(['produkJenis.jenis', 'produkOutlet.outlet']);
             return DataTables::of($model)
                 ->editColumn('harga', function($data){
                     return Locale::numberFormat($data->harga);
@@ -65,7 +65,7 @@ class ProdukController extends Controller
             return view('master.produk.create', compact('jenis_produk', 'outlet'));
         }catch(Exception $e){
             return response()->json([
-                'message' => 'Gagal Tambah Produk',
+                'message' => 'Gagal Menambahkan Produk',
             ], $e->getCode() ?: 500);
         }
     }
@@ -225,6 +225,7 @@ class ProdukController extends Controller
      */
     public function destroy($id)
     {
+        DB::beginTransaction();
         try{
             $model = Produk::find($id);
             if(!$model){
@@ -233,10 +234,12 @@ class ProdukController extends Controller
                 ], 404);
             }
             $model->delete();
+            DB::commit();
             return response()->json([
                 'message' => 'Berhasil Menghapus Produk'
             ], 200);
         }catch(Exception $e){
+            DB::rollBack();
             return response()->json([
                 'message' => 'Gagal Menghapus Produk',
                 'error' => $e->getMessage()
