@@ -81,6 +81,28 @@
                 </div>
             </div>
             @endif
+            @if($feature = $rolePermission['feature'] ?? false)
+                @if(in_array('transaksi', $feature))
+                <div class="menu-item">
+                    <a href="{{route('transaksi.index')}}" class="menu-item-link">
+                        <div class="menu-item-icon">
+                            <i class="fa fa-cart-plus"></i>
+                        </div>
+                        <span class="menu-item-text">Transaksi</span>
+                    </a>
+                </div>
+                @endif
+                @if(in_array('report', $feature))
+                <div class="menu-item">
+                    <a href="{{route('report.index')}}" class="menu-item-link">
+                        <div class="menu-item-icon">
+                            <i class="fa fa-file"></i>
+                        </div>
+                        <span class="menu-item-text">Laporan</span>
+                    </a>
+                </div>
+                @endif
+            @endif
         </div>
     </div>
 </div>

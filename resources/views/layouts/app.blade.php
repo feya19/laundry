@@ -20,7 +20,7 @@
     <link href="{{asset('favicon.ico')}}" rel="shortcut icon" type="image/x-icon">
     @stack('style')
 </head>
-<body class="theme-light preload-active aside-active aside-mobile-minimized aside-desktop-maximized" id="fullscreen">
+<body class="theme-light preload-active {{($sidebar ?? true ? 'aside-active aside-mobile-minimized aside-desktop-maximized' : '')}}" id="fullscreen">
     <!-- BEGIN Page Holder -->
     <div class="preload">
 		<div class="preload-dialog">
@@ -40,7 +40,6 @@
             @includeWhen($header ?? true, 'layouts.header')
 			<div class="content">
                 <div class="container-fluid">
-                    @include('layouts.message')
                     @yield('content')
                 </div>
             </div>

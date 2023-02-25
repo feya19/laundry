@@ -11,6 +11,7 @@ class Pelanggan extends Model
     protected $table = 'pelanggan';
     protected $fillable = ['nama', 'alamat', 'jenis_kelamin', 'telepon','created_by', 'updated_by'];
 
+    /** Enums */
     public static function enumJenisKelamin($data = null){
         $result = [
 			'L' => 'Laki-Laki',

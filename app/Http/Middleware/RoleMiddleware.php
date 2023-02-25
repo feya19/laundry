@@ -19,9 +19,8 @@ class RoleMiddleware
     {
         try{
             $permission = config('permission')[auth()->user()->role];
-            $authClass = $permission['master'] + $permission['feature'];
-            $actionClass = explode('@', $request->route()->action['controller'])[0];
-            $key = array_search($actionClass, config('app.class'));
+            $authClass = array_merge($permission['master'], $permission['feature']);
+            $key = array_search(explode('@', $request->route()->action['controller'])[0], config('app.class'));
             return in_array($key, $authClass) ? $next($request) : abort(401);
         }catch(Exception $e){
             abort(401);

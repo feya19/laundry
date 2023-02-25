@@ -11,6 +11,10 @@
     {!! Form::select('role', $roles, null, ['class' => 'form-control', 'id' => 'alamat', 'data-input-type' => 'select2']) !!}
 </div>
 <div class="form-group">
+    <label for="user_outlet">User Outlet</label>
+    {!! Form::select('user_outlet[]', $outlet, null, ['class' => 'form-control', 'id' => 'outlet', 'data-input-type' => 'select2', 'multiple']) !!}
+</div>
+<div class="form-group">
     <label for="FotoProfile">Foto</label>
     {!! Form::file('file', ['class' => 'd-none file-upload-input ', 'id' => 'FotoProfil', 'accept' => 'image/*', 'style' => 'max-width: 250px;', 'onchange' => 'fileFoto()' ]) !!}
     <div class="input-group">

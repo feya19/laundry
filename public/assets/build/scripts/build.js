@@ -124,6 +124,11 @@ $.fn.buildForm = function() {
                 greedy: false,
             });
         });
+        $('[data-input-type="datetime"]', elem).each(function(key, elem) {
+            $(elem).datetimepicker({
+                format: lang['datetime']
+            });
+        });
         $('[data-input-type="number"]', elem).each(function(key, elem) {
             $(elem).inputmask({
                 mask: '9',
@@ -175,22 +180,6 @@ function toFloat(value) {
         return value;
     }
 }
-
-$.fn.blockUI = function() {
-    $(this).block({
-        message: '<div class="spinner-border text-primary preload-spinner"></div>',
-        overlayCSS: {
-            backgroundColor: '#fff',
-            opacity: 0.8,
-            cursor: 'wait'
-        },
-        css: {
-            border: 0,
-            padding: 0,
-            backgroundColor: 'transparent'
-        }
-    })
-};
 
 function confirmDialog(title, message, action) {
     Swal.fire({

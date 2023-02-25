@@ -41,10 +41,18 @@ class User extends Authenticatable
      *
      * @var array<string, string>
      */
+    
+    /** Relations */
+    
+    public function userOutlet(){
+        return $this->hasMany(UserOutlet::class, 'users_id', 'id');
+    }
+
+    /** Enums */
     public static function enumRole($data = null){
         $result = [
-			'admin' => 'Admin',
-			'kasir' => 'Kasir',
+            'admin' => 'Admin',
+            'kasir' => 'Kasir',
             'owner' => 'Owner'
         ];
         if ($data) {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Outlet;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UserRequest extends FormRequest
@@ -23,11 +24,13 @@ class UserRequest extends FormRequest
      */
     public function rules(): array
     {
+        $outlet = Outlet::pluck('id')->implode(',');
         $rules = [
             'username' => 'required|max:64|string|unique:users,username,'.$this->users,
             'nama' => 'required|string|max:255',
             'role' => 'required|in:admin,kasir,owner',
             'file' => 'max:2048|mimes:jpg,jpeg,png',
+            'user_outlet.*' => 'in:'.$outlet,
             'password' => 'required|min:6',
             'konfirmasi_password' => 'required|same:password|min:6'
         ];
@@ -42,17 +45,13 @@ class UserRequest extends FormRequest
         return $rules;
     }
 
-    public function messages()
+    public function attributes(): array
     {
         return [
-            'username.required' => 'Username wajib diisi.',
-            'username.max' => 'Username maksimal berisi :max karakter.',
-            'username.unique' => 'Username sudah ada sebelumnya.',
-            'role.required' => 'Role wajib diisi.',
-            'role.in' => 'Role yang dipilih tidak valid.',
-            'password.required' => 'Password wajib diisi.',
-            'password.min' => 'Password maksimal berisi :min karakter.',
-            'konfirmasi_password.same' => 'Konfirmasi Password Dan Password Harus Sama',
+            'username' => 'Username',
+            'role' => 'Role',
+            'password' => 'Password',
+            'konfirmasi_password' => 'Konfirmasi Password',
         ];
     }
 }

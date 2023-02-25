@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('content')
 <div class="portlet">
+    @include('layouts.message')
     <div class="portlet-header">
         <p class="portlet-title">Outlet</p>
         <div class="ml-auto">

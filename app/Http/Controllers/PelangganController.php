@@ -63,14 +63,14 @@ class PelangganController extends Controller
         $post['created_by'] = auth()->user()->username;
         DB::beginTransaction();
         try{
-            Pelanggan::create($post);
+            $model = Pelanggan::create($post);
             DB::commit();
             return response()->json([
-                'message' => 'Berhasil Menambahkan Pelanggan' 
+                'message' => 'Berhasil Menambahkan Pelanggan',
+                'data' => $model
             ], 200);
         }catch(Exception $e){
             DB::rollBack();
-            dd($e);
             return response()->json([
                 'message' => 'Gagal Menambahkan Pelanggan',
             ], $e->getCode() ?: 500);

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('content')
 <div class="portlet">
+    @include('layouts.message')
     <div class="portlet-header">
         <p class="portlet-title">Users</p>
         <div class="ml-auto">
@@ -14,6 +15,7 @@
                     <th>Username</th>
                     <th>Name</th>
                     <th>Role</th>
+                    <th width="150">User Outlet</th>
                     <th width="1"></th>
                 </tr>
             </thead>
@@ -38,6 +40,7 @@
                 {data: 'username', name: 'users.username'},
                 {data: 'name', name: 'users.name'},
                 {data: 'role', name: 'users.role'},
+                {data: 'outlet_user', name: 'userOutlet.outlet.nama'},
                 {data: '_', searchable: false, orderable: false, class: 'text-right text-nowrap'}
             ]
         });

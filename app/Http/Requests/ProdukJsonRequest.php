@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ProfileRequest extends FormRequest
+class ProdukJsonRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,15 +22,8 @@ class ProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|min:3',
-            'file' => 'max:2048|mimes:jpg,png,jpeg'
-        ];
-    }
-
-    public function attributes(): array
-    {
-        return [
-            'name' => 'Nama',
+            'limit' => 'integer|max:100',
+            'q' => 'string'
         ];
     }
 }

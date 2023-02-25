@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProdukJsonRequest;
 use App\Http\Requests\ProdukRequest;
 use App\Library\Locale;
 use App\Models\JenisProduk;
@@ -12,6 +13,7 @@ use App\Models\ProdukOutlet;
 use DragonCode\Support\Facades\Helpers\Arr;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Request;
 use Yajra\DataTables\Facades\DataTables;
 
 class ProdukController extends Controller
@@ -188,7 +190,7 @@ class ProdukController extends Controller
         $post['updated_by'] =  auth()->user()->username;
         DB::beginTransaction();
         try{
-            $produk = Produk::findOrFail($id)->update($post);
+            $produk = Produk::findOrFail($id);
             ProdukJenis::where('produks_id', $id)->delete();
             $produk_jenis = Arr::map($post['jenis_produk'], function ($jenis) use ($produk) {
                 return [
@@ -205,6 +207,7 @@ class ProdukController extends Controller
                 ];
             });
             ProdukOutlet::insert($produk_outlet);
+            $produk->update($post);
             DB::commit();
             return response()->json([
                 'message' => 'Berhasil Menambahkan Produk' 
@@ -244,6 +247,33 @@ class ProdukController extends Controller
                 'message' => 'Gagal Menghapus Produk',
                 'error' => $e->getMessage()
             ], $e->getCode() ?: 500);
+        }
+    }
+
+    public function produkJson(ProdukJsonRequest $request){
+        try{
+            $produk = Produk::with(['produkJenis.jenis', 'produkOutlet.outlet'])
+            ->when($request->has('outlet'), function($q) use ($request){
+                $q->whereHas('produkOutlet.outlet', function($query) use ($request){
+                    $query->where('outlets.id', $request->outlet);
+                });
+            })->when($request->has('q'), function($q) use ($request){
+                $q->where('nama', 'LIKE', '%'.$request->q.'%')
+                ->orWhereHas('produkJenis.jenis', function ($query) use ($request) {
+                    $query->where('jenis', 'LIKE', '%'.$request->q.'%');
+                });
+            })->when($request->has('not_in'), function($q) use ($request){
+                $q->whereNotIn('id', $request->not_in);
+            });
+            $request->has('limit') ? $produk->limit($request->limit) : $produk->limit(10);
+            return response()->json([
+                'message' => 'Berhasil Mendapatkan Produk',
+                'data' => $produk->get()
+            ], 200);
+        }catch (Exception $e){
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 }

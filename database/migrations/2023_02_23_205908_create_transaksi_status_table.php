@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('transaksi_detail', function (Blueprint $table) {
+        Schema::create('transaksi_status', function (Blueprint $table) {
             $table->id();
             $table->foreignId('transaksi_id')->constrained('transaksi')->onUpdate('NO ACTION')->onDelete('CASCADE');
-            $table->foreignId('produks_id')->constrained('produks')->onUpdate('NO ACTION')->onDelete('RESTRICT');
-            $table->double('harga');
-            $table->float('jumlah');
-            $table->double('total');
+            $table->enum('status', ['queue', 'process', 'done', 'taken']);
+            $table->foreignId('users_id')->constrained('users')->onUpdate('NO ACTION')->onDelete('RESTRICT');
+            $table->timestamp('created_at');
         });
     }
 
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('transaksi_details');
+        Schema::dropIfExists('transaksi_status');
     }
 };

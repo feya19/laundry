@@ -21,9 +21,10 @@ return new class extends Migration
             $table->double('potongan');
             $table->double('biaya_tambahan');
             $table->double('total');
-            $table->enum('status', ['queue', 'process', 'done', 'taken']);
-            $table->dateTime('payment_date');
-            $table->enum('payment', ['0', '1']);
+            $table->double('bayar');
+            $table->double('kembali');
+            $table->dateTime('payment_date')->nullable();
+            $table->text('note')->nullable();
             $table->foreignId('users_id')->constrained('users')->onUpdate('NO ACTION')->onDelete('RESTRICT');
             $table->timestamps();
         });

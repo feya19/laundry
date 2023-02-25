@@ -12,6 +12,7 @@ class Produk extends Model
     protected $table = 'produks';
     protected $fillable = ['nama', 'harga', 'created_by', 'updated_by'];
 
+    /** Relations */
     public function produkJenis(){
         return $this->hasMany(ProdukJenis::class,'produks_id','id');
     }

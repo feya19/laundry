@@ -11,6 +11,7 @@ class ProdukJenis extends Model
     protected $primaryKey = 'id';
     protected $table = 'produk_jenis';
 
+    /** Relations */
     public function jenis(){
         return $this->belongsTo(JenisProduk::class, 'jenis_produks_id','id');
     }

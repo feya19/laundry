@@ -1,14 +1,28 @@
 <!-- BEGIN Header -->
+@php
+    $outlet = session('outlets_id') ? App\Models\Outlet::find(session('outlets_id')) : '';
+@endphp
 <div class="header">
     <!-- BEGIN Header Holder -->
     <div class="header-holder header-holder-desktop sticky-header" id="sticky-header-desktop">
         <div class="header-container container-fluid">
             <div class="header-wrap">
                 <!-- BEGIN Nav -->
+                @if(isset($sidebar))
+                    @if(!$sidebar)
+                    <a href="{{ route('home') }}" class="mr-3">
+                        <img src="{{ asset('assets/images/logo_dark.png') }}" alt="Logo" class="img-fluid" id="logo-dark" style="max-height: 4rem">
+                        <img src="{{ asset('assets/images/logo_light.png') }}" alt="Logo" class="img-fluid" id="logo-light" style="max-height: 4rem">
+                    </a>
+                    @endif
+                @endif
                 <strong>{{ App\Library\Locale::humanDateDisplay(now()); }}</strong>
                 <!-- END Nav -->
             </div>
             <div class="ml-auto header-wrap">
+                <div id="outlet" style="cursor: pointer;" onclick="window.location.href='{{route('selectOutlet')}}'">
+                    <i class="fa fa-store"></i><strong class="mx-2">{{$outlet ? $outlet->nama : 'Pilih Outlet'}}</strong>
+                </div>
                 <div class="dropdown ml-2">
                     <button class="btn btn-flat-primary widget13" data-toggle="dropdown">
                         <div class="widget13-text"> Hi <strong>{{auth()->user()->name}}</strong>
@@ -74,7 +88,9 @@
                 </button>
             </div>
             <div class="header-wrap header-wrap-block justify-content-start px-3">
-                <h4 class="header-brand">Laundry</h4>
+                <div id="outlet" style="cursor: pointer;" onclick="window.location.href='{{route('selectOutlet')}}'">
+                    <p style="width: 200px !important;" class="mb-0 text-truncate"><i class="fa fa-store"></i><span class="mx-2">{{$outlet ? $outlet->nama : 'Pilih Outlet'}}</span></p>
+                </div>
             </div>
             <div class="header-wrap">
                 <!-- BEGIN Dropdown -->
