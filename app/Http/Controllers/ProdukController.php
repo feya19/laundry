@@ -13,7 +13,6 @@ use App\Models\ProdukOutlet;
 use DragonCode\Support\Facades\Helpers\Arr;
 use Exception;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Request;
 use Yajra\DataTables\Facades\DataTables;
 
 class ProdukController extends Controller
@@ -122,6 +121,11 @@ class ProdukController extends Controller
     {
         try{
             $model = Produk::with(['produkJenis.jenis', 'produkOutlet.outlet'])->find($id);
+            if(!$model){
+                return response()->json([
+                    'message' => 'Produk Tidak Ditemukan'
+                ], 404);
+            }
             $model->jenis_produk = $model->produkJenis->map(function($produkJenis){
                 return '<label class="badge badge-primary">' . $produkJenis->jenis->jenis . '</label>';
             })->implode(' ');
@@ -129,11 +133,6 @@ class ProdukController extends Controller
                 return '<label class="badge badge-primary">' . $produkOutlet->outlet->nama . '</label>';
             })->implode(' ');
             $model->harga = Locale::numberFormat($model->harga);
-            if(!$model){
-                return response()->json([
-                    'message' => 'Produk Tidak Ditemukan'
-                ], 404);
-            }
             return view('master.produk.show', compact('model'));
         }catch(Exception $e){
             return response()->json([

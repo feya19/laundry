@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\ProfileRequest;
 use App\Models\Outlet;
+use App\Models\Transaksi;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\View\View;
@@ -22,6 +25,28 @@ class HomeController extends Controller
      */
     public function index(): View
     {
+        if($outlet = session('outlets_id')){
+            $model = Transaksi::with(['latestStatus'])->where([
+                ['outlets_id', $outlet],
+                ['created_at', '>=', date('Y-m-01 00:00:00')]
+            ])->get();
+            $data = ['queue' => 0, 'process' => 0, 'done' => 0, 'taken' => 0, 'transaksi' => 0, 'pembayaran' => 0];
+            foreach($model as $val){
+                $status = $val->latestStatus->status;
+                if($status == 'queue'){
+                    $data['queue']++;
+                }else if($status == 'process'){
+                    $data['process']++;
+                }else if($status == 'done'){
+                    $data['done']++;
+                }else{
+                    $data['done']++;
+                }
+                $data['transaksi'] += $val->total;
+                $data['pembayaran'] += $val->bayar;
+            }
+            return view('home', compact('data'));
+        }
         return view('home');
     }
 

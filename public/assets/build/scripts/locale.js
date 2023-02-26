@@ -19,7 +19,7 @@ var lang = {
     day_7 : 'Minggu',
     month : 'Bulan',
     month_01 : 'Januari',
-    month_02 : 'Febuari',
+    month_02 : 'Februari',
     month_03 : 'Maret',
     month_04 : 'April',
     month_05 : 'Mei',

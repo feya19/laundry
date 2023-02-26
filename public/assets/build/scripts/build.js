@@ -40,6 +40,7 @@ $(function() {
 
 feather.replace();
 
+
 $.fn.buildForm = function() {
     $.fn.modal.Constructor.prototype.enforceFocus = function() {};
     $.each(this, function(key, elem) {

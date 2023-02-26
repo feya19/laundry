@@ -26,6 +26,7 @@ return new class extends Migration
             $table->dateTime('payment_date')->nullable();
             $table->text('note')->nullable();
             $table->foreignId('users_id')->constrained('users')->onUpdate('NO ACTION')->onDelete('RESTRICT');
+            $table->string('updated_by', 64)->nullable();
             $table->timestamps();
         });
     }

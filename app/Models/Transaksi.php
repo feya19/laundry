@@ -10,8 +10,8 @@ class Transaksi extends Model
     use HasFactory;
     protected $table = 'transaksi';
     protected $fillable = [
-        'outlets_id', 'pelanggan_id', 'no_invoice', 'deadline', 'diskon', 'potongan', 'biaya_tambahan',
-        'total', 'bayar', 'kembali', 'payment_date', 'note', 'users_id'
+        'outlets_id', 'pelanggan_id', 'no_invoice', 'deadline', 'subtotal', 'diskon', 'potongan', 'biaya_tambahan',
+        'total', 'bayar', 'kembali', 'payment_date', 'note', 'users_id', 'updated_by'
     ];
 
     /** Relations */
@@ -20,7 +20,11 @@ class Transaksi extends Model
     }
 
     public function transaksiStatus(){
-        return $this->hasMany(TransaksiStatus::class, 'transaksi_id', 'id');
+        return $this->hasMany(TransaksiStatus::class, 'transaksi_id', 'id')->oldest();
+    }
+
+    public function latestStatus(){
+        return $this->hasOne(TransaksiStatus::class, 'transaksi_id', 'id')->latestOfMany();
     }
 
     public function outlet(){

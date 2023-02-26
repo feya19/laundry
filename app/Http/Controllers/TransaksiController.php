@@ -7,13 +7,13 @@ use App\Library\Locale;
 use App\Models\Pelanggan;
 use App\Models\Transaksi;
 use App\Models\TransaksiDetail;
-use App\Http\Controllers\ProdukController;
+use App\Http\Requests\TransaksiStatusRequest;
 use App\Library\AutoNumber;
-use App\Models\Produk;
 use App\Models\TransaksiStatus;
+use Barryvdh\DomPDF\Facade\PDF;
 use DragonCode\Support\Facades\Helpers\Arr;
 use Exception;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -23,49 +23,59 @@ class TransaksiController extends Controller
     {
         $title = 'Transaksi';
         if(request()->ajax()){
-            $model = Transaksi::with(['transaksiDetail.produk', 'transaksiStatus' => function($q){
-                $q->latest();
-            }]);
+            $model = Transaksi::with(['transaksiDetail.produk', 'latestStatus'])->when(request()->filled('status'), function($q){
+                $q->whereHas('latestStatus', function($query){
+                    $query->where('status', request('status'));
+                });
+            });
             return DataTables::of($model)
                 ->editColumn('created_at', function($data){
                     return Locale::humanDateTime($data->created_at);
+                })
+                ->editColumn('deadline', function($data){
+                    return Locale::humanDateTime($data->deadline);
                 })
                 ->editColumn('total', function($data){
                     return Locale::numberFormat($data->total);
                 })
                 ->editColumn('status', function($data){
-                    $key = $data->transaksiStatus[0]->status;
+                    $key = $data->latestStatus->status;
                     $status = '<label ';
                     switch ($key) {
                         case 'queue':
-                            $status .= 'class="badge badge-outline-secondary"';
+                            $status .= 'class="badge badge-secondary"';
                             break;
                         case 'process':
-                            $status .= 'class="badge badge-outline-info"';
+                            $status .= 'class="badge badge-warning"';
                             break;
                         case 'done':
-                            $status .= 'class="badge badge-outline-primary"';
+                            $status .= 'class="badge badge-primary"';
                             break;
                         default:
-                            $status .= 'class="badge badge-outline-success"';
+                            $status .= 'class="badge badge-success"';
                             break;
                     }
                     $status .= '>'.Transaksi::enumStatus($key).'</label>';
                     return $status;
                 })
-                ->editColumn('payment', function($data){
-                    return Locale::boolean($data->payment);
+                ->addColumn('lunas', function($data){
+                    return Locale::boolean($data->bayar >= $data->total);
                 })
                 ->addColumn('_', function ($data){
                     $html = '<button class="btn btn-info btn-icon" type="button" onclick="show('.$data->id.')" title="Show"><i class="fas fa-eye"></i></button>'; 
-                    $html .= '<button class="btn btn-warning btn-icon mx-2" type="button" onclick="edit('.$data->id.')" title="Edit"><i class="fas fa-edit"></i></button>';
-                    $html .= '<button class="btn btn-danger btn-icon" type="button" onclick="destroy('.$data->id.')" title="Delete" ><i class="far fa-trash-alt"></i></button>';
+                    $html .= '<button class="btn btn-primary btn-icon ml-2" type="button" onclick="window.open(\''.route('transaksi.invoice', ['id' => $data->id]).'\', \'_blank\')" title="Invoice"><i class="fas fa-file-invoice-dollar"></i></button>';
+                    if($data->bayar < $data->total && $data->latestStatus->status != 'taken'){
+                        $html .= '<button class="btn btn-success btn-icon mx-2" type="button" onclick="editStatus('.$data->id.')" title="Edit Status"><i class="fas fa-tasks"></i></button>';
+                        $html .= '<button class="btn btn-warning btn-icon" type="button" onclick="window.location.href=\''.route('transaksi.edit', ['transaksi' => $data->id]).'\'" title="Edit"><i class="fas fa-edit"></i></button>';
+                    }
+                    $html .= '<button class="btn btn-danger btn-icon ml-2" type="button" onclick="destroy('.$data->id.')" title="Delete" ><i class="far fa-trash-alt"></i></button>';
                     return $html;  
                 })
-                ->rawColumns(['_', 'status', 'payment'])
+                ->rawColumns(['_', 'status', 'lunas'])
                 ->make(true);
         }
-        return view('transaksi.index', compact('title'));
+        $status = Transaksi::enumStatus();
+        return view('transaksi.index', compact('title', 'status'));
     }
 
     /**
@@ -76,9 +86,8 @@ class TransaksiController extends Controller
     public function create()
     {
         try{
-            $pelanggan = Pelanggan::pluck('nama', 'id')->toArray();
             $status = Transaksi::enumStatus();
-            return view('transaksi.create', compact(['status', 'pelanggan']));
+            return view('transaksi.create', compact(['status']));
         }catch(Exception $e){
             return response()->json([
                 'message' => 'Gagal Menambahkan Transaksi',
@@ -101,9 +110,7 @@ class TransaksiController extends Controller
             $post['deadline'] = isset($post['batas_waktu']) ? date('Y-m-d H:i:s', strtotime($post['batas_waktu'])) : null;
             $post['no_invoice'] =  AutoNumber::generate('transaksi', 'id', 'INV-'.$post['outlets_id'].'{Y}{m}{d}:4');
             $post['users_id'] = auth()->user()->id;
-            if($post['status'] == 'taken'){
-                $post['payment_date'] = now();
-            }
+            if($post['status'] == 'taken') $post['payment_date'] = now();
             $transaksi = Transaksi::create($post);
             $transaksi_detail = Arr::map($post['produk'], function ($produk) use ($transaksi) {
                 return [
@@ -125,8 +132,56 @@ class TransaksiController extends Controller
             return to_route('transaksi.create')->with('success_message', 'Berhasil Menambahkan Transaksi');
         }catch(Exception $e){
             DB::rollBack();
-            dd($e);
             return redirect()->back()->withInput()->with('error_message', 'Gagal Menambahkan Transaksi');
+        }
+    }
+
+    public function editStatus($id){
+        try{
+            $model = Transaksi::with(['latestStatus'])->find($id);
+            if(!$model){
+                return response()->json([
+                    'message' => 'Transaksi Tidak Ditemukan'
+                ], 404);
+            }
+            $model->status = $model->latestStatus->status;
+            $status = Transaksi::enumStatus();
+            return view('transaksi.update-status', compact('model', 'status'));
+        }catch(Exception $e){
+            return response()->json([
+                'message' => 'Transaksi Gagal Ditampilkan',
+                'error' => $e->getMessage()
+            ], $e->getCode() ?: 500);
+        }
+    }
+
+    public function updateStatus(TransaksiStatusRequest $request, $id) : JsonResponse
+    {
+        $post = $request->validated();
+        $post['updated_by'] = auth()->user()->username;
+        DB::beginTransaction();
+        try{
+            $transaksi = Transaksi::findOrfail($id);
+            if($request->status == 'taken'):
+                $post['payment_date'] = now();
+                $transaksi->update($post);
+            endif;
+            TransaksiStatus::insert([
+                'transaksi_id' => $id,
+                'status' => $post['status'],
+                'users_id' => auth()->user()->id,
+                'created_at' => now()
+            ]);
+            DB::commit();
+            return response()->json([
+                'message' => 'Berhasil Memperbarui Status Transaksi'
+            ], 200);
+        }catch(Exception $e){
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Gagal Memperbarui Status Transaksi',
+                'error' => $e->getMessage()
+            ], $e->getCode() ?: 500);
         }
     }
 
@@ -139,19 +194,13 @@ class TransaksiController extends Controller
     public function show($id)
     {
         try{
-            $model = Transaksi::with(['TransaksiJenis.jenis', 'TransaksiDetail.outlet'])->find($id);
-            $model->jenis_Transaksi = $model->TransaksiJenis->map(function($TransaksiJenis){
-                return '<label class="badge badge-primary">' . $TransaksiJenis->jenis->jenis . '</label>';
-            })->implode(' ');
-            $model->Transaksi_outlet = $model->TransaksiDetail->map(function($TransaksiDetail){
-                return '<label class="badge badge-primary">' . $TransaksiDetail->outlet->nama . '</label>';
-            })->implode(' ');
-            $model->harga = Locale::numberFormat($model->harga);
+            $model = Transaksi::with(['user', 'pelanggan', 'transaksiDetail.produk', 'transaksiStatus.user', 'latestStatus'])->find($id);
             if(!$model){
                 return response()->json([
                     'message' => 'Transaksi Tidak Ditemukan'
                 ], 404);
             }
+            $model->status = Transaksi::enumStatus($model->latestStatus->status);
             return view('transaksi.show', compact('model'));
         }catch(Exception $e){
             return response()->json([
@@ -170,26 +219,20 @@ class TransaksiController extends Controller
     public function edit($id)
     {
         try{
-            $model = Transaksi::with(['TransaksiJenis.jenis', 'TransaksiDetail.outlet'])->find($id);
-            $model->jenis_Transaksi = $model->TransaksiJenis->map(function($TransaksiJenis){
-                return $TransaksiJenis->jenis->id;
-            });
-            $model->Transaksi_outlet = $model->TransaksiDetail->map(function($TransaksiDetail){
-                return $TransaksiDetail->outlet->id;
-            });
-            $jenis_Transaksi = JenisTransaksi::pluck('jenis', 'id')->toArray();
-            $outlet = Outlet::pluck('nama', 'id')->toArray();
-            $model->harga = Locale::numberFormat($model->harga);
+            $model = Transaksi::with(['transaksiDetail.produk', 'latestStatus'])->find($id);
             if(!$model){
                 return response()->json([
                     'message' => 'Transaksi Tidak Ditemukan'
                 ], 404);
             }
-            return view('transaksi.edit', compact(['model', 'jenis_Transaksi', 'outlet']));
+            $pelanggan = Pelanggan::findOrfail($model->pelanggan_id)->pluck('nama', 'id')->toArray();
+            $model->deadline = date('Y-m-d H:i', strtotime($model->deadline));
+            $model->status = $model->latestStatus->status;
+            $status = Transaksi::enumStatus();
+            return view('transaksi.edit', compact('model', 'status', 'pelanggan'));
         }catch(Exception $e){
             return response()->json([
-                'message' => 'Transaksi Gagal Diedit',
-                'error' => $e->getMessage()
+                'message' => 'Gagal Menambahkan Transaksi',
             ], $e->getCode() ?: 500);
         }
     }
@@ -204,35 +247,40 @@ class TransaksiController extends Controller
     public function update(TransaksiRequest $request, $id)
     {
         $post = $request->validated();
-        $post['jenis_Transaksis_id'] = $post['jenis_Transaksi'];
-        $post['updated_by'] =  auth()->user()->username;
         DB::beginTransaction();
         try{
-            $Transaksi = Transaksi::findOrFail($id)->update($post);
-            TransaksiJenis::where('Transaksis_id', $id)->delete();
-            $Transaksi_jenis = Arr::map($post['jenis_Transaksi'], function ($jenis) use ($Transaksi) {
+            $post['updated_by'] =  auth()->user()->username;
+            if($post['status'] == 'taken') $post['payment_date'] = now();
+            Transaksi::findOrfail($id)->update($post);
+            TransaksiDetail::where('transaksi_id', $id)->delete();
+            $transaksi_detail = Arr::map($post['produk'], function ($produk) use ($id) {
                 return [
-                    'Transaksis_id' => $Transaksi->id,
-                    'jenis_Transaksis_id' => $jenis
+                    'transaksi_id' => $id,
+                    'produks_id' => $produk['produks_id'],
+                    'harga' => $produk['harga'],
+                    'jumlah' => $produk['jumlah'],
+                    'total' => $produk['total']
                 ];
             });
-            TransaksiJenis::insert($Transaksi_jenis);
-            TransaksiDetail::where('Transaksis_id', $id)->delete();
-            $Transaksi_outlet = Arr::map($post['Transaksi_outlet'], function ($outlet) use ($Transaksi) {
-                return [
-                    'Transaksis_id' => $Transaksi->id,
-                    'outlets_id' => $outlet
-                ];
-            });
-            TransaksiDetail::insert($Transaksi_outlet);
+            TransaksiDetail::insert($transaksi_detail);
+            $latest = TransaksiStatus::where(['transaksi_id' => $id])->latest()->first();
+            if($latest->status != $post['status']):
+                TransaksiStatus::insert([
+                    'transaksi_id' => $id,
+                    'status' => $post['status'],
+                    'users_id' => auth()->user()->id,
+                    'created_at' => now()
+                ]);
+            endif;
             DB::commit();
             return response()->json([
-                'message' => 'Berhasil Menambahkan Transaksi' 
+                'message' => 'Berhasil Memperbarui Transaksi' 
             ], 200);
         }catch(Exception $e){
             DB::rollBack();
+            dd($e);
             return response()->json([
-                'message' => 'Gagal Menambahkan Transaksi',
+                'message' => 'Gagal Memperbarui Transaksi',
             ], $e->getCode() ?: 500);
         }
     }
@@ -265,5 +313,11 @@ class TransaksiController extends Controller
                 'error' => $e->getMessage()
             ], $e->getCode() ?: 500);
         }
+    }
+
+    public function invoice($id){
+        $model = Transaksi::with(['user', 'pelanggan', 'transaksiDetail.produk'])->find($id);
+        $pdf = PDF::loadView('transaksi.invoice', compact('model'));
+        return $pdf->stream($model->no_invoice.'.pdf');
     }
 }

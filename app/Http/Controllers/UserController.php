@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ApiJsonRequest;
 use App\Http\Requests\UserRequest;
 use App\Models\Outlet;
 use App\Models\User;
@@ -182,5 +183,23 @@ class UserController extends Controller
                 'message' => 'Gagal Edit User',
             ], $e->getCode() ?: 500);
         }        
+    }
+
+    public function userJson(ApiJsonRequest $request){
+        try{
+            $user = User::when($request->has('q'), function($q) use ($request){
+                $q->where('username', 'LIKE', '%'.$request->q.'%');
+            });
+            if(request('kasir')) $user->whereIn('role', ['kasir', 'admin']);
+            $request->has('limit') ? $user->limit($request->limit) : $user->limit(10);
+            return response()->json([
+                'message' => 'Berhasil Mendapatkan User',
+                'data' => $user->get()
+            ], 200);
+        }catch (Exception $e){
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 500);
+        } 
     }
 }

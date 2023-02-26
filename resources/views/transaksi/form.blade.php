@@ -1,3 +1,7 @@
+@php 
+use App\Library\Locale;
+$pelanggan = old('pelanggan_id') ? App\Models\Pelanggan::find(old('pelanggan_id'))->pluck('nama', 'id')->toArray() : ($pelanggan ?? []);
+@endphp
 <style>
    .theme-light .select2-results__option[aria-selected=true] {
     color: #2196f3;
@@ -13,14 +17,14 @@
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="no_invoice">No Invoice</label>
-                    {!! Form::text('no_invoice', 'AUTO', ['class' => 'form-control', 'id' => 'no_invoice', 'readonly']) !!}
+                    {!! Form::text('no_invoice', $model->no_invoice ?? 'AUTO', ['class' => 'form-control', 'id' => 'no_invoice', 'disabled']) !!}
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="name">Pelanggan <span class="text-danger">*</span></label>
                     <div class="input-group">
-                        {!! Form::select('pelanggan_id', ['' => '']+$pelanggan, null, ['class' => 'form-control '.add_error($errors, 'pelanggan_id'), 'id' => 'pelanggan']) !!}
+                        {!! Form::select('pelanggan_id', ['' => 'Pilih']+$pelanggan, null, ['class' => 'form-control '.add_error($errors, 'pelanggan_id'), 'id' => 'pelanggan']) !!}
                         <div class="input-group-append">
                             <button type="button" class="btn btn-primary" id="btnAddPelanggan" onclick="formAddPelanggan()"><i class="fa fa-plus"></i></button>
                         </div>
@@ -37,7 +41,7 @@
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="batas_waktu">Batas Waktu <span class="text-danger">*</span></label>
-                    {!! Form::text('batas_waktu', '', ['class' => 'form-control '.add_error($errors, 'batas_waktu'), 'id' => 'batas_waktu', 'data-input-type' => 'datetime']) !!}
+                    {!! Form::text('batas_waktu', $model->deadline ?? '', ['class' => 'form-control '.add_error($errors, 'batas_waktu'), 'id' => 'batas_waktu', 'autocomplete' => 'off']) !!}
                     @error('batas_waktu')
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
@@ -135,27 +139,25 @@
                             </tr>
                         @endif
                     @endforeach
-                @elseif(isset($model['produk']))
-                    @php $grand_total = 0; @endphp
-                    @foreach($model['produk'] as $key => $value)
-                        @php $grand_total += $value['total']; @endphp
-                        <tr data-row-id="{{ $key }}">
+                @elseif(isset($model->transaksiDetail))
+                    @foreach($model->transaksiDetail as $value)
+                        <tr data-row-id="{{ $value->produks_id }}">
                             <td>
-                                {!! Form::hidden('produk['.$value['produks_id'].'][produks_id]', $value['produks_id'], ['id' => 'produk-produks_id-'.$value['produks_id']]) !!}
-                                {!! Form::hidden('produk['.$value['produks_id'].'][nama]', $value['nama_produk']) !!}
-                                {{$value['nama_produk']}}
+                                {!! Form::hidden('produk['.$value->produks_id.'][produks_id]', $value->produks_id, ['id' => 'produk-produks_id-'.$value->produks_id]) !!}
+                                {!! Form::hidden('produk['.$value->produks_id.'][nama]', $value->produk->nama) !!}
+                                {{$value->produk->nama}}
                             </td>
                             <td>
-                                {!! Form::text('produk['.$value['produks_id'].'][harga]',$value['harga'],['id' => 'produk-harga-'.$value['produks_id'], 'class' => 'form-control text-right', 'data-input-type' => 'number-format', 'onchange' => 'countTotal('.$value['produks_id'].')','readonly']) !!}
+                                {!! Form::text('produk['.$value->produks_id.'][harga]',Locale::numberFormat($value->harga),['id' => 'produk-harga-'.$value->produks_id, 'class' => 'form-control text-right', 'data-input-type' => 'number-format', 'onchange' => 'countTotal('.$value->produks_id.')','readonly']) !!}
                             </td>
                             <td>
-                                {!! Form::text('produk['.$value['produks_id'].'][jumlah]',$value['jumlah'],['id' => 'produk-jumlah-'.$value['produks_id'], 'class' => 'form-control text-center', 'onkeyup' => 'countTotal('.$value['produks_id'].')', 'data-input-type' => 'number-format', 'data-thousand-separator' => 'false']) !!}
+                                {!! Form::text('produk['.$value->produks_id.'][jumlah]',Locale::numberFormat($value->jumlah),['id' => 'produk-jumlah-'.$value->produks_id, 'class' => 'form-control text-center', 'onkeyup' => 'countTotal('.$value->produks_id.')', 'data-input-type' => 'number-format', 'data-thousand-separator' => 'false']) !!}
                             </td>
                             <td>
-                                {!! Form::text('produk['.$value['produks_id'].'][total]',$value['total'],['id' => 'produk-total-'.$value['produks_id'], 'class' => 'form-control text-right', 'data-input-type' => 'number-format', 'readonly']) !!}
+                                {!! Form::text('produk['.$value->produks_id.'][total]',Locale::numberFormat($value->total),['id' => 'produk-total-'.$value->produks_id, 'class' => 'form-control text-right', 'data-input-type' => 'number-format', 'readonly']) !!}
                             </td>
                             <td class="text-center">
-                                <button type="button" class="btn btn-danger btn-md" onclick="produk_remove({{ $key }})"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-danger btn-md" onclick="produk_remove({{ $value->produks_id }})"><i class="fa fa-minus"></i></button>
                             </td>
                         </tr>
                     @endforeach
@@ -164,7 +166,7 @@
         </table>
         <div class="form-group px-1">
             <label for="note">Catatan</label>
-            {!! Form::text('note', NULL, ['id' => 'note', 'class' => 'form-control '.add_error($errors, 'note')]) !!}
+            {!! Form::text('note', null, ['id' => 'note', 'class' => 'form-control '.add_error($errors, 'note')]) !!}
             @error('note')
                 <span class="invalid-feedback" role="alert">
                     <strong>{{ $message }}</strong>
@@ -180,7 +182,7 @@
     <div class="portlet-body">
         <div class="form-group">
             <label for="subtotal">Subtotal</label>
-            {!! Form::text('subtotal', 0, ['class' => 'form-control text-right '.add_error($errors, 'subtotal'), 'id' => 'subtotal', 'readonly', 'data-input-type' => 'number-format', 'onchange' => 'setTotal()']) !!}
+            {!! Form::text('subtotal', $model->subtotal ?? 0, ['class' => 'form-control text-right '.add_error($errors, 'subtotal'), 'id' => 'subtotal', 'readonly', 'data-input-type' => 'number-format', 'onchange' => 'setTotal()']) !!}
             @error('subtotal')
                 <span class="invalid-feedback" role="alert">
                     <strong>{{ $message }}</strong>
@@ -191,7 +193,7 @@
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="diskon">Diskon</label>
-                    {!! Form::text('diskon', 0, ['class' => 'form-control text-right '.add_error($errors, 'diskon'), 'id' => 'diskon', 'data-input-type' => 'number-format']) !!}
+                    {!! Form::text('diskon', $model->diskon ?? 0, ['class' => 'form-control text-right '.add_error($errors, 'diskon'), 'id' => 'diskon', 'data-input-type' => 'number-format']) !!}
                     @error('diskon')
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
@@ -202,7 +204,7 @@
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="potongan">Potongan</label>
-                    {!! Form::text('potongan', 0, ['class' => 'form-control text-right '.add_error($errors, 'potongan'), 'id' => 'potongan', 'data-input-type' => 'number-format']) !!}
+                    {!! Form::text('potongan', $model->potongan ?? 0, ['class' => 'form-control text-right '.add_error($errors, 'potongan'), 'id' => 'potongan', 'data-input-type' => 'number-format']) !!}
                     @error('potongan')
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
@@ -215,7 +217,7 @@
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="biaya_tambahan">Biaya Tambahan</label>
-                    {!! Form::text('biaya_tambahan', 0, ['class' => 'form-control text-right '.add_error($errors, 'biaya_tambahan'), 'id' => 'biaya_tambahan', 'data-input-type' => 'number-format']) !!}
+                    {!! Form::text('biaya_tambahan', $model->biaya_tambahan ?? 0, ['class' => 'form-control text-right '.add_error($errors, 'biaya_tambahan'), 'id' => 'biaya_tambahan', 'data-input-type' => 'number-format']) !!}
                     @error('biaya_tambahan')
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
@@ -226,7 +228,7 @@
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="total">Total</label>
-                    {!! Form::text('total', 0, ['class' => 'form-control text-right '.add_error($errors, 'total'), 'id' => 'total', 'data-input-type' => 'number-format', 'readonly']) !!}
+                    {!! Form::text('total', $model->total ?? 0, ['class' => 'form-control text-right '.add_error($errors, 'total'), 'id' => 'total', 'data-input-type' => 'number-format', 'readonly']) !!}
                     @error('total')
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
@@ -248,7 +250,7 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label for="total">Total Biaya</label>
-                    {!! Form::text('total_biaya', 0, ['class' => 'form-control text-right '.add_error($errors, 'total_biaya'), 'id' => 'total_biaya', 'data-input-type' => 'number-format', 'readonly']) !!}
+                    {!! Form::text('total_biaya', $model->total ?? 0, ['class' => 'form-control text-right '.add_error($errors, 'total_biaya'), 'id' => 'total_biaya', 'data-input-type' => 'number-format', 'readonly']) !!}
                     @error('total_biaya')
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
@@ -256,8 +258,8 @@
                     @enderror
                 </div>
                 <div class="form-group">
-                    <label for="bayar">Bayar</label>
-                    {!! Form::text('bayar', 0, ['class' => 'form-control text-right '.add_error($errors, 'bayar'), 'id' => 'bayar', 'data-input-type' => 'number-format', 'onkeyup' => 'setPembayaran()']) !!}
+                    <label for="bayar">Bayar <span class="text-danger">*</span></label>
+                    {!! Form::text('bayar', $model->bayar ?? 0, ['class' => 'form-control text-right '.add_error($errors, 'bayar'), 'id' => 'bayar', 'data-input-type' => 'number-format', 'onkeyup' => 'setPembayaran()']) !!}
                     @error('bayar')
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
@@ -266,7 +268,7 @@
                 </div>
                 <div class="form-group">
                     <label for="kembali">Kembali</label>
-                    {!! Form::text('kembali', 0, ['class' => 'form-control text-right '.add_error($errors, 'kembali'), 'id' => 'kembali', 'data-input-type' => 'number-format', 'readonly']) !!}
+                    {!! Form::text('kembali', $model->kembali ?? 0, ['class' => 'form-control text-right '.add_error($errors, 'kembali'), 'id' => 'kembali', 'data-input-type' => 'number-format', 'readonly']) !!}
                     @error('kembali')
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>

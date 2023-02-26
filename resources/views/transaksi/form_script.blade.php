@@ -1,8 +1,42 @@
 <script>
     var used = [];
+    var invoice = '{{session('invoice') ? route('transaksi.invoice'. ['id' => session('invoice')]) : '' }}';
     $(() => {
-        $("#pelanggan").select2({placeholder: 'Pilih'});
-        $('#pelanggan').hasClass('is-invalid') && $('#select2-pelanggan-container').addClass('select2-invalid')
+        if(invoice) window.open(invoice, '_blank');
+        $('#batas_waktu').datetimepicker({
+            format: 'yyyy-mm-dd hh:ii',
+            autoclose: true
+        }).attr("placeholder", "yyyy-mm-dd hh:ii");
+        $("#pelanggan").select2({
+            templateResult: (state) => {
+                if (state.loading) return "Searching...";
+                return $state = $(`<label>${state.text}&ensp;+${state.telepon}</label>`)
+            },
+            ajax: {
+                url: '{{route('pelanggan.json')}}',
+                type: "GET",
+                dataType: 'json',
+                delay: 500,
+                data: function(params) {
+                    return {
+                        q: params.term,
+                        limit: 15,
+                    }
+                },
+                processResults: function (response) {
+                    return {
+                        results: $.map(response.data, (item) => {
+                            return {
+                                text: item.nama,
+                                id: item.id,
+                                telepon: item.telepon,
+                            }
+                        })
+                    };
+                },
+                cache: true
+            }
+        });
         $.each($('[id^="produk-produks_id"]'), (i, row) => {
             used.push($('#'+row.id).val());
         });
@@ -188,8 +222,7 @@
             switch (error.response.status) {
                 case 422:
                     var response = JSON.parse(error.request.responseText);
-                    $('#formCreate').prepend(validation(response))
-                    $('#formCreate').unblock();
+                    validation(response);
                     break;
                 default:
                     toastr.error('Failed', error.response.data.message);
@@ -202,7 +235,8 @@
         if($('#status :selected').val() == 'taken' && payment == false){
             $('#modal-dialog').modal('show');
         }else{
-            confirmDialog('Apakah anda yakin mengirim data ini?', '', () => {
+            var message = $('#status :selected').val() == 'taken' ? 'proses tidak dapat dibatalkan' : '';
+            confirmDialog('Apakah anda yakin mengirim data ini?', message, () => {
                 $('#formTransaksi').submit();
             });
         }

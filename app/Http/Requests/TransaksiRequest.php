@@ -50,7 +50,7 @@ class TransaksiRequest extends FormRequest
         return [
             'pelanggan_id' => 'required',
             'status' => 'required',
-            'batas_waktu' => 'required|date_format:Y-m-d H:i',
+            'batas_waktu' => 'required|date_format:Y-m-d H:i|after_or_equal:'.now(),
             'produk.*.produks_id' => 'required',
             'produk.*.harga' => 'required|numeric|gte:0',
             'produk.*.jumlah' => 'required|numeric|gte:1',
@@ -77,5 +77,12 @@ class TransaksiRequest extends FormRequest
             endforeach;
         endif;
         return $attr;
+    }
+
+    public function messages()
+    {
+        return [
+            'batas_waktu.after_or_equal' => 'Batas waktu harus berisi tanggal dan waktu setelah atau sama dengan saat ini.'
+        ];
     }
 }

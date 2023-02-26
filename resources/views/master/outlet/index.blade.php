@@ -74,8 +74,7 @@
             switch (error.response.status) {
                 case 422:
                     var response = JSON.parse(error.request.responseText);
-                    $('#formCreate').prepend(validation(response))
-                    $('#formCreate').unblock();
+                    validation(response);
                     break;
                 default:
                     toastr.error('Failed', error.response.data.message);
@@ -108,8 +107,7 @@
             switch (error.response.status) {
                 case 422:
                     var response = JSON.parse(error.request.responseText);
-                    $('#formEdit').prepend(validation(response))
-                    $('#formEdit').unblock();
+                    validation(response);
                     break;
                 default:
                     toastr.error('Failed', error.response.data.message);

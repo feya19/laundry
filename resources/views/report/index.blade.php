@@ -1,130 +1,109 @@
+@php
+    $users = old('user') ? App\Models\User::whereIn('id', old('user'))->pluck('username', 'id') : [];
+@endphp
 @extends('layouts.app')
 @section('content')
 <div class="portlet">
     @include('layouts.message')
     <div class="portlet-header">
-        <p class="portlet-title">Jenis Produk</p>
-        <div class="ml-auto">
-            <button type="button" class="btn btn-primary btn-icon" onclick="tambahJenisProduk()"><i class="fa fa-plus"></i></button>
-        </div>
+        <p class="portlet-title">Report Transaksi</p>
     </div>
     <div class="portlet-body">
-        <table class="table table-consoned table-bordered" id="table">
-            <thead>
-                <tr>
-                    <th>Jenis</th>
-                    <th width="1"></th>
-                </tr>
-            </thead>
-            <tbody></tbody>
+        {!! Form::open(['route' => 'report.download', 'method' => 'get', 'id' => 'formReport']) !!}
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Periode Awal</label>
+                            <div class="input-group">
+                                {!! Form::text('periode_awal', date('01-m-Y'), ['class' => 'form-control '.add_error($errors, 'periode_awal'), 'id' => 'periodeAwal', 'data-input-type' => 'dateinput', 'onchange' => 'getShiftAktif()']) !!}
+                                <div class="input-group-append">
+                                    <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                </div>
+                                @error('periode_awal')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Periode Akhir</label>
+                            <div class="input-group">
+                                {!! Form::text('periode_akhir', date('d-m-Y'), ['class' => 'form-control '.add_error($errors, 'periode_akhir'), 'id' => 'periodeAkhir', 'data-input-type' => 'dateinput']) !!}
+                                <div class="input-group-append">
+                                    <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                </div>
+                                @error('periode_akhir')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>Status</label>
+                            {!! Form::select('status', ['' => 'Semua'] +$status, null, ['class' => 'form-control '.add_error($errors, 'status'), 'id' => 'status']) !!}
+                            @error('status')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label>User</label>
+                            {!! Form::select('user[]', $users, null, ['class' => 'form-control', 'id' => 'user', 'data-input-type' => 'select2', 'multiple']) !!}
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    {!! Form::submit('Download', ['class' => 'btn btn-primary']) !!}
+                </div>
+            </div>
         </div>
-    </table>
+        {!! Form::close() !!}
+    </div>
 </div>
 @endsection
 @push('script')
 <script>
-    var dataTatble;
-    $(function(){
-        dataTable = $('#table').DataTable({
-            processing: true,
-            serverSide: true,
-            responsive: true,
-            ajax: '',
-            columns: [
-                {data: 'jenis', name: 'jenis_produks.jenis'},
-                {data: '_', searchable: false, orderable: false, class: 'text-right text-nowrap'}
-            ]
-        });
-    });
-
-    function tambahJenisProduk(){
-        axios.get('{{ route('master.jenis_produk.create') }}').then((response) => {
-            bootbox.dialog({
-                title: 'Tambah Jenis Produk',
-                message: response.data
-            })
-        }).catch((error) => {
-            console.log(error)
-        });
-    }
-
-    function show(id){
-        var url = '{{ route("master.jenis_produk.show", ":id") }}';
-        url = url.replace(':id', id);
-        axios.get(url).then((response) => {
-            bootbox.dialog({
-                title: 'Lihat Jenis Produk',
-                message: response.data
-            })
-        }).catch((error) => {
-            console.log(error)
-        });
-    }
-
-    function store(){
-        axios.post('{{ route('master.jenis_produk.store') }}', $('#formCreate').serialize()).then((response) => {
-            toastr.success('Success', response.data.message);
-            dataTable.ajax.reload();
-            bootbox.hideAll();
-        }).catch((error) => {
-            switch (error.response.status) {
-                case 422:
-                    var response = JSON.parse(error.request.responseText);
-                    $('#formCreate').prepend(validation(response))
-                    $('#formCreate').unblock();
-                    break;
-                default:
-                    toastr.error('Failed', error.response.data.message);
-                    break;
+    $(() => {
+        $("#user").select2({templateResult: (state) => {
+                if (state.loading) return "Searching...";
+                return $state = $(`<label>${state.text}</label>`)
+            },
+            ajax: {
+                url: '{{route('user.json')}}',
+                type: "GET",
+                dataType: 'json',
+                delay: 500,
+                data: function(params) {
+                    return {
+                        q: params.term,
+                        kasir: true,
+                        limit: 15,
+                    }
+                },
+                processResults: function (response) {
+                    return {
+                        results: $.map(response.data, (item) => {
+                            return {
+                                text: item.username,
+                                id: item.id
+                            }
+                        })
+                    };
+                },
+                cache: true
             }
         });
-    }
-
-    function edit(id){
-        var url = '{{ route("master.jenis_produk.edit", ":id") }}';
-        url = url.replace(':id', id);
-        axios.get(url).then((response) => {
-            bootbox.dialog({
-                title: 'Edit Jenis Produk',
-                message: response.data
-            })
-        }).catch((error) => {
-            console.log(error)
-        });
-    }
-
-    function update(id){
-        var url = '{{ route("master.jenis_produk.update", ":id") }}';
-        url = url.replace(':id', id);
-        axios.patch(url, $('#formEdit').serialize()).then((response) => {
-            toastr.success('Success', response.data.message);
-            dataTable.ajax.reload();
-            bootbox.hideAll();
-        }).catch((error) => {
-            switch (error.response.status) {
-                case 422:
-                    var response = JSON.parse(error.request.responseText);
-                    $('#formEdit').prepend(validation(response))
-                    $('#formEdit').unblock();
-                    break;
-                default:
-                    toastr.error('Failed', error.response.data.message);
-                    break;
-            }
-        });
-    }
-
-    function destroy(id){
-        confirmDialog('Apakah anda yakin menghapus data ini?', 'proses tidak dapat dibatalkan', function() {
-            var url = '{{ route("master.jenis_produk.destroy", ":id") }}';
-            url = url.replace(':id', id);
-            axios.delete(url).then((response) => {
-                toastr.success('Success', response.data.message);
-                dataTable.ajax.reload();
-            }).catch((error) => {
-                toastr.error('Failed', error.response.data.message);
-            });
-        });
-    }
+    })
 </script>
 @endpush

@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ApiJsonRequest;
 use App\Http\Requests\PelangganRequest;
 use App\Models\Pelanggan;
 use Exception;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -172,5 +172,23 @@ class PelangganController extends Controller
                 'error' => $e->getMessage()
             ], $e->getCode() ?: 500);
         }
+    }
+
+    public function pelangganJson(ApiJsonRequest $request){
+        try{
+            $pelanggan = Pelanggan::when($request->has('q'), function($q) use ($request){
+                $q->where('nama', 'LIKE', '%'.$request->q.'%')
+                ->orWhere(DB::raw('SUBSTRING(telepon, 1)'), 'LIKE', '%'.$request->q.'%');
+            });
+            $request->has('limit') ? $pelanggan->limit($request->limit) : $pelanggan->limit(10);
+            return response()->json([
+                'message' => 'Berhasil Mendapatkan Pelanggan',
+                'data' => $pelanggan->get()
+            ], 200);
+        }catch (Exception $e){
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 500);
+        } 
     }
 }

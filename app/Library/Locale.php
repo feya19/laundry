@@ -137,7 +137,7 @@ class Locale {
 	public static function listMonth($month = null) {
 		$data = [
 			'month_01' => 'Januari',
-			'month_02' => 'Febuari',
+			'month_02' => 'Februari',
 			'month_03' => 'Maret',
 			'month_04' => 'April',
 			'month_05' => 'Mei',
@@ -159,7 +159,7 @@ class Locale {
 	public static function month($month = null) {
 		$data = [
 			'01' => 'Januari',
-			'02' => 'Febuari',
+			'02' => 'Februari',
 			'03' => 'Maret',
 			'04' => 'April',
 			'05' => 'Mei',

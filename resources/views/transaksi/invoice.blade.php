@@ -1,9 +1,14 @@
+@php
+	use App\Library\Locale;
+@endphp
 <!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="utf-8" />
-		<title>A simple, clean, and responsive HTML invoice template</title>
-
+		<title>Invoice</title>
+		<link rel="dns-prefetch" href="//fonts.gstatic.com">
+    	<link href="https://fonts.bunny.net/css?family=Helvetica" rel="stylesheet">
+		<link rel="stylesheet" href="{{public_path('assets/build/styles/ltr-core.css')}}">
 		<style>
 			.invoice-box {
 				max-width: 800px;
@@ -28,7 +33,7 @@
 				vertical-align: top;
 			}
 
-			.invoice-box table tr td:nth-child(2) {
+			.invoice-box table tr td:nth-child(4) {
 				text-align: right;
 			}
 
@@ -60,12 +65,7 @@
 				border-bottom: 1px solid #eee;
 			}
 
-			.invoice-box table tr.item.last td {
-				border-bottom: none;
-			}
-
-			.invoice-box table tr.total td:nth-child(2) {
-				border-top: 2px solid #eee;
+			.invoice-box table tr.total td:nth-child(4) {
 				font-weight: bold;
 			}
 
@@ -96,6 +96,9 @@
 			.invoice-box.rtl table tr td:nth-child(2) {
 				text-align: left;
 			}
+			.text-right{
+				text-align: right !important;
+			}
 		</style>
 	</head>
 
@@ -103,17 +106,16 @@
 		<div class="invoice-box">
 			<table cellpadding="0" cellspacing="0">
 				<tr class="top">
-					<td colspan="2">
+					<td colspan="4">
 						<table>
 							<tr>
 								<td class="title">
-									<img src="https://www.sparksuite.com/images/logo.png" style="width: 100%; max-width: 300px" />
+									<img src="{{ public_path('assets/images/logo_light.png') }}" style="width: 100%; max-width: 300px" />
 								</td>
-
-								<td>
-									Invoice #: 123<br />
-									Created: January 1, 2015<br />
-									Due: February 1, 2015
+								<td class="text-right" style="vertical-align: middle !important;">
+									No Invoice: {{$model->no_invoice}}<br />
+									Tanggal: {{Locale::humanDateTime($model->created_at)}}<br />
+									Batas Waktu: {{Locale::humanDateTime($model->deadline)}}
 								</td>
 							</tr>
 						</table>
@@ -121,65 +123,89 @@
 				</tr>
 
 				<tr class="information">
-					<td colspan="2">
+					<td colspan="4">
 						<table>
 							<tr>
 								<td>
-									Sparksuite, Inc.<br />
-									12345 Sunny Road<br />
-									Sunnyville, CA 12345
+									Outlet: {{$model->outlet->nama}}<br />
+									{{$model->outlet->alamat}}<br />
+									{{$model->outlet->telepon}}
 								</td>
 
-								<td>
-									Acme Corp.<br />
-									John Doe<br />
-									john@example.com
+								<td class="text-right">
+									{{$model->pelanggan->nama}}<br />
+									{{$model->pelanggan->alamat}}<br />
+									{{$model->pelanggan->telepon}}
 								</td>
 							</tr>
 						</table>
 					</td>
 				</tr>
-
-				<tr class="heading">
-					<td>Payment Method</td>
-
-					<td>Check #</td>
-				</tr>
-
 				<tr class="details">
-					<td>Check</td>
-
-					<td>1000</td>
+					<td>Pembayaran</td>
+					<td></td>
+					<td></td>
+					<td>{!! $model->bayar >= $model->total ? '<span class="badge badge-success">Lunas</span>' : '<span class="badge badge-danger">Belum Lunas</span>'!!}</td>
 				</tr>
-
 				<tr class="heading">
-					<td>Item</td>
-
-					<td>Price</td>
+					<td width="50%">Produk</td>
+					<td width="20%">Harga</td>
+					<td width="5%">Jumlah</td>
+					<td width="25%">Total</td>
 				</tr>
-
+				@foreach ($model->transaksiDetail as $item)
 				<tr class="item">
-					<td>Website design</td>
-
-					<td>$300.00</td>
+					<td>{{$item->produk->nama}}</td>
+					<td>{{Locale::numberFormat($item->harga)}}</td>
+					<td class="text-right">{{Locale::numberFormat($item->jumlah)}}</td>
+					<td>{{Locale::numberFormat($item->total)}}</td>
 				</tr>
-
-				<tr class="item">
-					<td>Hosting (3 months)</td>
-
-					<td>$75.00</td>
+				@endforeach
+				<tr class="heading">
+					<td></td>
+					<td>Subtotal</td>
+					<td></td>
+					<td>{{Locale::numberFormat($model->subtotal)}}</td>
 				</tr>
-
-				<tr class="item last">
-					<td>Domain name (1 year)</td>
-
-					<td>$10.00</td>
-				</tr>
-
+				@php
+					$disc = 0;
+					if($model->diskon > 0){
+						$disc += $model->subtotal * $model->diskon / 100;
+					}else if($model->potongan > 0){
+						$disc += $model->potongan;
+					}
+				@endphp
+				@if ($disc)
 				<tr class="total">
 					<td></td>
-
-					<td>Total: $385.00</td>
+					<td>Diskon</td>
+					<td>: </td>
+					<td class="text-right">{{Locale::numberFormat($disc)}}</td>
+				</tr>	
+				@endif
+				<tr class="total">
+					<td></td>
+					<td>Biaya Tambahan: </td>
+					<td>: </td>
+					<td class="text-right">{{Locale::numberFormat($model->biaya_tambahan)}}</td>
+				</tr>
+				<tr class="total">
+					<td></td>
+					<td>Total: </td>
+					<td>: </td>
+					<td class="text-right">{{Locale::numberFormat($model->total)}}</td>
+				</tr>
+				<tr class="total">
+					<td></td>
+					<td>Bayar: </td>
+					<td>: </td>
+					<td class="text-right">{{Locale::numberFormat($model->bayar)}}</td>
+				</tr>
+				<tr class="total">
+					<td></td>
+					<td>Kembali: </td>
+					<td>: </td>
+					<td class="text-right">{{Locale::numberFormat($model->kembali)}}</td>
 				</tr>
 			</table>
 		</div>
