@@ -5,7 +5,7 @@
     <div class="portlet-header">
         <p class="portlet-title">Users</p>
         <div class="ml-auto">
-            <button type="button" class="btn btn-primary btn-icon" onclick="tambahUser()"><i class="fa fa-plus"></i></button>
+            <button type="button" class="btn btn-primary" onclick="tambahUser()">Tambah <i class="fa fa-plus"></i></button>
         </div>
     </div>
     <div class="portlet-body">
@@ -42,7 +42,8 @@
                 {data: 'role', name: 'users.role'},
                 {data: 'outlet_user', name: 'userOutlet.outlet.nama'},
                 {data: '_', searchable: false, orderable: false, class: 'text-right text-nowrap'}
-            ]
+            ],
+            order: [[0, 'DESC']]
         });
     });
 

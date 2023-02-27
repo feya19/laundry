@@ -5,7 +5,7 @@
     <div class="portlet-header">
         <p class="portlet-title">Jenis Produk</p>
         <div class="ml-auto">
-            <button type="button" class="btn btn-primary btn-icon" onclick="tambahJenisProduk()"><i class="fa fa-plus"></i></button>
+            <button type="button" class="btn btn-primary" onclick="tambahJenisProduk()">Tambah <i class="fa fa-plus"></i></button>
         </div>
     </div>
     <div class="portlet-body">
@@ -33,7 +33,8 @@
             columns: [
                 {data: 'jenis', name: 'jenis_produks.jenis'},
                 {data: '_', searchable: false, orderable: false, class: 'text-right text-nowrap'}
-            ]
+            ],
+            order: [[0, 'DESC']]
         });
     });
 

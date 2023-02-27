@@ -2,7 +2,7 @@
     <div class="form-group">
         <label for="status">Status <span class="text-danger">*</span></label>
         {!! Form::hidden('lastStatus', $model->latestStatus->status) !!}
-        {!! Form::select('status', $status, null, ['class' => 'form-control', 'id' => 'status']) !!}
+        {!! Form::select('status', $status, null, ['class' => 'form-control', 'id' => 'statusEdit']) !!}
     </div>
     <div class="d-none" id="pembayaran">
         <div class="form-group">
@@ -51,8 +51,8 @@
 <script>
     $(() => {
         $('#formStatus').buildForm();
-        $('#status').change((e) => {
-            $('#status :selected').val() == 'taken' ? $('#pembayaran').removeClass('d-none') : $('#pembayaran').addClass('d-none');
+        $('#statusEdit').change((e) => {
+            $('#statusEdit :selected').val() == 'taken' ? $('#pembayaran').removeClass('d-none') : $('#pembayaran').addClass('d-none');
         });
         $('#diskon').keyup(function(e){
             if($(this).val() == ''){

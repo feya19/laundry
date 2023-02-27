@@ -10,7 +10,7 @@
             <div class="form-row align-items-center justify-content-md-end">
                 <label for="status" class="col-md-1 col-3 mb-0 mr-3">Status</label>
                 {!! Form::select('status', [''=>'Pilih']+$status, null, ['class' => 'form-control col-md-3 col-6 mr-3', 'id' => 'status']) !!}
-                <button type="button" class="btn btn-primary btn-icon" onclick="tambahTransaksi()"><i class="fa fa-plus"></i></button>
+                <button type="button" class="btn btn-primary" onclick="tambahTransaksi()">Tambah <i class="fa fa-plus"></i></button>
             </div>
         </div>
     </div>

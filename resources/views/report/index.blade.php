@@ -6,7 +6,7 @@
 <div class="portlet">
     @include('layouts.message')
     <div class="portlet-header">
-        <p class="portlet-title">Report Transaksi</p>
+        <p class="portlet-title">Laporan Transaksi</p>
     </div>
     <div class="portlet-body">
         {!! Form::open(['route' => 'report.download', 'method' => 'get', 'id' => 'formReport']) !!}

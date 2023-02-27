@@ -7,6 +7,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use App\Library\Locale;
 use App\Models\Outlet;
+use App\Models\User;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ReportController extends Controller
@@ -59,12 +60,17 @@ class ReportController extends Controller
         $worksheet = $spreadsheet->getActiveSheet();
         $spreadsheet->getActiveSheet()->getStyle('A7:N7')->applyFromArray($styleHeader);
         $row = 8;
+        $grand_total = 0;
                
         $worksheet->getCell('A1')->setValue('Outlet');
         $worksheet->getCell('B1')->setValue($outlet->nama);
         $worksheet->getCell('B2')->setValue(Locale::humanDateTime(now()));
         $worksheet->getCell('B3')->setValue(Locale::humanDate($startDate));
         $worksheet->getCell('B4')->setValue(Locale::humanDate($endDate));
+        if($request->has('user')){
+            $worksheet->getCell('A5')->setValue('User');
+            $worksheet->getCell('B5')->setValue(User::whereIn('id', $post['user'])->get()->implode('username', ', '));
+        }
         foreach ($model as $key => $data) {
             $worksheet->getCell('A' . $row)->setValue($data->no_invoice);
             $worksheet->getCell('B' . $row)->setValue(Locale::humanDateTime($data->tanggal));
@@ -88,10 +94,11 @@ class ReportController extends Controller
                 $worksheet->getCell('I' . $row)->setValue(Locale::numberFormat($transaksi->jumlah));
                 $worksheet->getCell('J' . $row)->setValue(Locale::numberFormat($transaksi->total));
                 $row++;
+                $grand_total += $data->total;
             }
         }
         $worksheet->getCell('A' . $row)->setValue('Grand Total');
-        $worksheet->getCell('N' . $row)->setValue($data->total);
+        $worksheet->getCell('N' . $row)->setValue($grand_total);
         $spreadsheet->getActiveSheet()->mergeCells('A' . $row . ':M' . $row);
         $spreadsheet->getActiveSheet()->getStyle('A'.$row.':N'. $row)->applyFromArray($styleHeader);
 

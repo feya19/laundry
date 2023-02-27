@@ -5,7 +5,7 @@
     <div class="portlet-header">
         <p class="portlet-title">Outlet</p>
         <div class="ml-auto">
-            <button type="button" class="btn btn-primary btn-icon" onclick="tambahOutlet()"><i class="fa fa-plus"></i></button>
+            <button type="button" class="btn btn-primary" onclick="tambahOutlet()">Tambah <i class="fa fa-plus"></i></button>
         </div>
     </div>
     <div class="portlet-body">
@@ -37,7 +37,8 @@
                 {data: 'alamat', name: 'outlets.alamat'},
                 {data: 'telepon', name: 'outlets.telepon'},
                 {data: '_', searchable: false, orderable: false, class: 'text-right text-nowrap'}
-            ]
+            ],
+            order: [[0, 'DESC']]
         });
     });
 

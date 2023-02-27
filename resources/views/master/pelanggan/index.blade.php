@@ -2,17 +2,15 @@
 @section('content')
 <div class="portlet">
     @include('layouts.message')
-    <div class="portlet-header d-block">
-        <div class="row">
-            <div class="col-md-6">
-                <p class="portlet-title">Pelanggan</p>
-            </div>
-            <div class="col-md-6 mt-2 mt-md-0">
-                <div class="form-row align-items-center justify-content-md-end">
-                    <label for="jenis_kelamin" class="col-md-1 col-3 mb-0 mr-2">Filter</label>
-                    {!! Form::select('jenis_kelamin', $jenis_kelamin, null, ['class' => 'form-control col-md-3 col-6 mr-3', 'id' => 'jenis_kelamin']) !!}
-                    <button type="button" class="col-auto mr-2 ml-auto ml-md-0 btn btn-primary btn-icon" onclick="tambahPelanggan()"><i class="fa fa-plus"></i></button>
-                </div>
+    <div class="portlet-header">
+        <div class="col-md-6">
+            <p class="portlet-title">Pelanggan</p>
+        </div>
+        <div class="col-md-6 mt-2 mt-md-0">
+            <div class="form-row align-items-center justify-content-md-end">
+                <label for="jenis_kelamin" class="col-md-1 col-3 mb-0 mr-2">Filter</label>
+                {!! Form::select('jenis_kelamin', $jenis_kelamin, null, ['class' => 'form-control col-md-3 col-6 mr-3', 'id' => 'jenis_kelamin']) !!}
+                <button type="button" class="btn btn-primary" onclick="tambahPelanggan()">Tambah <i class="fa fa-plus"></i></button>
             </div>
         </div>
     </div>
@@ -47,7 +45,8 @@
                 {data: 'telepon', name: 'pelanggan.telepon'},
                 {data: 'jenis_kelamin', searchable: false, orderable: false},
                 {data: '_', searchable: false, orderable: false, class: 'text-right text-nowrap'}
-            ]
+            ],
+            order: [[0, 'DESC']]
         });
         
         $('#jenis_kelamin').change(function(){

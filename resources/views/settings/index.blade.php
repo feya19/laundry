@@ -6,8 +6,8 @@
 @section('content')
     <div class="container mt-5">
         <div class="portlet">
-            @include('layouts.message')
-            <div class="portlet-body">
+            <div class="portlet-body p-5">
+                @include('layouts.message')
                 <div class="row">
                     <div class="col-md-4">
                         <h3 class="content-title m-t-0"><i class="fa fa-user"></i> Profil</h3>

@@ -28,8 +28,9 @@ $(function() {
     changeLogo();
     $("#theme-toggle").click(() => { changeLogo() });
 
-    if ($('#sidebar .single-item a[href="'+window.location.href+'"]')) {
-        $('#sidebar .single-item a[href="'+window.location.href+'"]').parent().addClass('active');
+    if ($('#sidebar .menu-item a[href="'+window.location.href+'"]')) {
+        $('#sidebar .menu-item a[href="'+window.location.href+'"]').length == 0 && $('#sidebar .menu-item a[href="'+window.location.origin+'"]').addClass('active');
+        $('#sidebar .menu-item a[href="'+window.location.href+'"]').addClass('active');
         $('#sidebar .menu-item .menu-submenu .menu-item a[href="'+window.location.href+'"]').addClass('active');
         $('#sidebar .menu-item .menu-submenu .menu-item a[href="'+window.location.href+'"]').parent().parent().parent().addClass('active');
         $('#sidebar .menu-item .menu-submenu .menu-item a[href="'+window.location.href+'"]').parent().parent().parent().children('.menu-item-toggle').addClass('active');

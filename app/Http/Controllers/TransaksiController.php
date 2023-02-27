@@ -23,7 +23,9 @@ class TransaksiController extends Controller
     {
         $title = 'Transaksi';
         if(request()->ajax()){
-            $model = Transaksi::with(['transaksiDetail.produk', 'latestStatus'])->when(request()->filled('status'), function($q){
+            $model = Transaksi::with(['transaksiDetail.produk', 'latestStatus'])
+            ->outletAktif()
+            ->when(request()->filled('status'), function($q){
                 $q->whereHas('latestStatus', function($query){
                     $query->where('status', request('status'));
                 });
@@ -46,7 +48,7 @@ class TransaksiController extends Controller
                             $status .= 'class="badge badge-secondary"';
                             break;
                         case 'process':
-                            $status .= 'class="badge badge-warning"';
+                            $status .= 'class="badge badge-info"';
                             break;
                         case 'done':
                             $status .= 'class="badge badge-primary"';
@@ -138,7 +140,7 @@ class TransaksiController extends Controller
 
     public function editStatus($id){
         try{
-            $model = Transaksi::with(['latestStatus'])->find($id);
+            $model = Transaksi::with(['latestStatus'])->outletAktif()->find($id);
             if(!$model){
                 return response()->json([
                     'message' => 'Transaksi Tidak Ditemukan'
@@ -219,7 +221,7 @@ class TransaksiController extends Controller
     public function edit($id)
     {
         try{
-            $model = Transaksi::with(['transaksiDetail.produk', 'latestStatus'])->find($id);
+            $model = Transaksi::with(['transaksiDetail.produk', 'latestStatus'])->outletAktif()->find($id);
             if(!$model){
                 return response()->json([
                     'message' => 'Transaksi Tidak Ditemukan'
@@ -295,7 +297,7 @@ class TransaksiController extends Controller
     {
         DB::beginTransaction();
         try{
-            $model = Transaksi::find($id);
+            $model = Transaksi::outletAktif()->find($id);
             if(!$model){
                 return response()->json([
                     'message' => 'Transaksi Tidak Ditemukan'
@@ -316,7 +318,7 @@ class TransaksiController extends Controller
     }
 
     public function invoice($id){
-        $model = Transaksi::with(['user', 'pelanggan', 'transaksiDetail.produk'])->find($id);
+        $model = Transaksi::with(['user', 'pelanggan', 'transaksiDetail.produk'])->outletAktif()->find($id);
         $pdf = PDF::loadView('transaksi.invoice', compact('model'));
         return $pdf->stream($model->no_invoice.'.pdf');
     }

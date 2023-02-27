@@ -5,7 +5,7 @@
     <div class="portlet-header">
         <p class="portlet-title">Produk</p>
         <div class="ml-auto">
-            <button type="button" class="btn btn-primary btn-icon" onclick="tambahProduk()"><i class="fa fa-plus"></i></button>
+            <button type="button" class="btn btn-primary" onclick="tambahProduk()">Tambah <i class="fa fa-plus"></i></button>
         </div>
     </div>
     <div class="portlet-body">
@@ -39,7 +39,8 @@
                 {data: 'outlet_produk', name:'produkOutlet.outlet.nama'},
                 {data: 'harga', name: 'produks.harga'},
                 {data: '_', searchable: false, orderable: false, class: 'text-right text-nowrap'}
-            ]
+            ],
+            order: [[0, 'DESC']]
         });
     });
 

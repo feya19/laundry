@@ -39,3 +39,10 @@
 .sticky{
     width: auto !important; position: fixed; top: 0px; z-index: auto;
 }
+.theme-light .dashboard-status-header{
+    border-bottom: thin solid #eeeeee;
+}
+
+.theme-dark .dashboard-status-header{
+    border-bottom: thin solid #757575;
+}

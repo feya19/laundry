@@ -39,6 +39,12 @@ class Transaksi extends Model
         return $this->belongsTo(User::class, 'users_id', 'id');
     }
 
+    /** Scope */
+
+    public function scopeOutletAktif($query){
+        return $query->where('outlets_id', session('outlets_id'));
+    }
+
     /** Enums */
 
     public static function enumStatus($data = null){

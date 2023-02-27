@@ -138,7 +138,7 @@
                             $class = 'marker marker-circle text-secondary';
                             break;
                         case 'process':
-                            $class = 'marker marker-circle text-warning';
+                            $class = 'marker marker-circle text-info';
                             break;
                         case 'done':
                             $class = 'marker marker-circle text-primary';

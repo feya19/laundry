@@ -6,9 +6,7 @@
 	<head>
 		<meta charset="utf-8" />
 		<title>Invoice</title>
-		<link rel="dns-prefetch" href="//fonts.gstatic.com">
     	<link href="https://fonts.bunny.net/css?family=Helvetica" rel="stylesheet">
-		<link rel="stylesheet" href="{{public_path('assets/build/styles/ltr-core.css')}}">
 		<style>
 			.invoice-box {
 				max-width: 800px;
@@ -99,6 +97,46 @@
 			.text-right{
 				text-align: right !important;
 			}
+
+			.badge {
+				display: inline-block;
+				padding: 0.5em 0.75em;
+				font-size: 75%;
+				font-weight: 600;
+				line-height: 1;
+				text-align: center;
+				white-space: nowrap;
+				vertical-align: baseline;
+				border: 1px solid transparent;
+				border-radius: 0.35rem;
+				transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; }
+				@media (prefers-reduced-motion: reduce) {
+					.badge {
+					transition: none; } }
+				a.badge:focus, a.badge:hover {
+					text-decoration: none; }
+				.badge:empty {
+					display: none; }
+			.badge-success {
+				color: #fff;
+				background: #4caf50;
+				border-color: #4caf50; }
+				a.badge-success.focus, a.badge-success:focus, a.badge-success:hover {
+					color: #fff;
+					background: #3d8b40;
+					border-color: #3d8b40; }
+				a.badge-success.focus, a.badge-success:focus {
+				outline: 0; }
+			.badge-danger {
+				color: #fff;
+				background: #f44336;
+				border-color: #f44336; }
+				a.badge-danger.focus, a.badge-danger:focus, a.badge-danger:hover {
+					color: #fff;
+					background: #ea1c0d;
+					border-color: #ea1c0d; }
+				a.badge-danger.focus, a.badge-danger:focus {
+					outline: 0; }
 		</style>
 	</head>
 
@@ -195,6 +233,7 @@
 					<td>: </td>
 					<td class="text-right">{{Locale::numberFormat($model->total)}}</td>
 				</tr>
+				@if ($model->bayar > 0)
 				<tr class="total">
 					<td></td>
 					<td>Bayar: </td>
@@ -207,6 +246,7 @@
 					<td>: </td>
 					<td class="text-right">{{Locale::numberFormat($model->kembali)}}</td>
 				</tr>
+				@endif
 			</table>
 		</div>
 	</body>
