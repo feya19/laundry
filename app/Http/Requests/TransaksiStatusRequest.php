@@ -36,6 +36,7 @@ class TransaksiStatusRequest extends FormRequest
     public function rules(): array
     {
         return  [
+            'lastStatus' => 'required',
             'status' => 'required',
             'subtotal' => 'required|numeric|gte:0',
             'diskon' => 'numeric|gte:0|max:100',
