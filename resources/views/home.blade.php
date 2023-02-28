@@ -138,7 +138,7 @@
                         <!-- END Widget -->
                     </div>
                     <!-- BEGIN Chart -->
-                    <div id="chartPembayaran" class="widget11 widget11-bottom widget-chart-7" data-chart-color="#2196f3" data-chart-label="Pembayaran" data-chart-series=""></div>
+                    <div id="chartPembayaran" data-chart-identfier="pembayaran"  class="widget11 widget11-bottom widget-chart-7" data-chart-color="#2196f3" data-chart-label="Pembayaran" data-chart-series=""></div>
                     <!-- END Chart -->
                 </div>
                 <!-- END Portlet -->
@@ -166,7 +166,7 @@
                         <!-- END Widget -->
                     </div>
                     <!-- BEGIN Chart -->
-                    <div id="chartTransaksi" class="widget11 widget11-bottom widget-chart-7" data-chart-color="#4caf50" data-chart-label="Transaksi" data-chart-currency="false" data-chart-series=""></div>
+                    <div id="chartTransaksi"  data-chart-identfier="pembayaran" class="widget11 widget11-bottom widget-chart-7" data-chart-color="#4caf50" data-chart-label="Transaksi" data-chart-currency="false" data-chart-series=""></div>
                     <!-- END Chart -->
                 </div>
                 <!-- END Portlet -->
@@ -207,6 +207,7 @@
                 var chart = $(".widget-chart-7").map(function(){
                     var color = $(this).data("chart-color");
                     var label = $(this).data("chart-label");
+                    var id_chart = $(this).data("chart-identifier");
                     var series= $(this).data("chart-series").split(",").map(function(data){
                         return Number(data)
                     });
@@ -233,7 +234,7 @@
                         stroke:{show:true,colors:[color]},
                         markers:{colors:isDarkDefault?colors.black:colors.white,strokeWidth:4,strokeColors:color},
                         tooltip:{marker:{show:false},
-                        y:{formatter:function formatter(val){return this.id == 'chartPembayaran' ? localization.number(val) : val/150000}}},
+                        y:{formatter:(val) => {return val}}},
                         xaxis:{categories:months,
                         crosshairs:{show:false}}}))
                 });

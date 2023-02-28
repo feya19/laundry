@@ -30,12 +30,12 @@ Auth::routes([
 
 Route::middleware(['auth'])->group(function(){
     Route::get('/', [HomeController::class, 'index'])->name('home');
-    Route::get('/status-transaksi/{outlet}', [HomeController::class, 'statusTransaksi'])->name('statusTransaksi');
+    Route::get('/status-transaksi/{outlet?}', [HomeController::class, 'statusTransaksi'])->name('statusTransaksi');
     Route::get('settings', [HomeController::class, 'settings'])->name('settings');
     Route::post('change-profile', [HomeController::class, 'changeProfile'])->name('changeProfile');
     Route::post('change-password', [HomeController::class, 'changePassword'])->name('changePassword');
     Route::get('select-outlet', [HomeController::class, 'selectOutlet'])->name('selectOutlet');
-    Route::get('set-outlet/{id}/{previous}', [HomeController::class, 'setOutlet'])->name('setOutlet');
+    Route::get('set-outlet/{id}/{previous?}', [HomeController::class, 'setOutlet'])->name('setOutlet');
     Route::group(['middleware' => 'role'], function(){
         Route::prefix('master')->name('master.')->group(function(){
             Route::resource('outlet', OutletController::class);

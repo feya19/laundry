@@ -5,8 +5,12 @@
 @endphp
 @section('content')
 <div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
+    <div class="row no-gutters align-items-center justify-content-center h-100">
+        <div class="col-sm-8 col-md-6 col-xl-3">
+            <div class="text-center mb-2">
+                <img src="{{ asset('assets/images/logo_dark.png') }}" alt="Logo" class="img-fluid" id="logo-dark" style="max-height: 6rem">
+                <img src="{{ asset('assets/images/logo_light.png') }}" alt="Logo" class="img-fluid" id="logo-light" style="max-height: 6rem">
+            </div>
             <div class="card">
                 <div class="card-header">{{ __('Login') }}</div>
                 <div class="card-body">

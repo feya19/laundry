@@ -10,7 +10,7 @@
         $("#pelanggan").select2({
             templateResult: (state) => {
                 if (state.loading) return "Searching...";
-                return $state = $(`<label>${state.text}&ensp;+${state.telepon}</label>`)
+                return $state = $(`<label>${state.text}&ensp;${state.telepon}</label>`)
             },
             ajax: {
                 url: '{{route('pelanggan.json')}}',
