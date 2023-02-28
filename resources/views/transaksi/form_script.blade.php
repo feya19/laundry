@@ -232,7 +232,7 @@
     }
 
     function submitForm(payment = false){
-        if($('#status :selected').val() == 'taken' && payment == false){
+        if(payment == false){
             $('#modal-dialog').modal('show');
         }else{
             var message = $('#status :selected').val() == 'taken' ? 'proses tidak dapat dibatalkan' : '';

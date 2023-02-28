@@ -4,7 +4,7 @@
         {!! Form::hidden('lastStatus', $model->latestStatus->status) !!}
         {!! Form::select('status', $status, null, ['class' => 'form-control', 'id' => 'statusEdit']) !!}
     </div>
-    <div class="d-none" id="pembayaran">
+    <div id="pembayaran">
         <div class="form-group">
             <label for="subtotal">Subtotal</label>
             {!! Form::text('subtotal', $model->subtotal ?? 0, ['class' => 'form-control text-right', 'id' => 'subtotal', 'readonly', 'data-input-type' => 'number-format']) !!}
@@ -51,9 +51,6 @@
 <script>
     $(() => {
         $('#formStatus').buildForm();
-        $('#statusEdit').change((e) => {
-            $('#statusEdit :selected').val() == 'taken' ? $('#pembayaran').removeClass('d-none') : $('#pembayaran').addClass('d-none');
-        });
         $('#diskon').keyup(function(e){
             if($(this).val() == ''){
                 $('#potongan').prop('disabled', false);

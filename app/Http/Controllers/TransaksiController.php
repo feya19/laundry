@@ -66,7 +66,7 @@ class TransaksiController extends Controller
                 ->addColumn('_', function ($data){
                     $html = '<button class="btn btn-info btn-icon" type="button" onclick="show('.$data->id.')" title="Show"><i class="fas fa-eye"></i></button>'; 
                     $html .= '<button class="btn btn-primary btn-icon ml-2" type="button" onclick="window.open(\''.route('transaksi.invoice', ['id' => $data->id]).'\', \'_blank\')" title="Invoice"><i class="fas fa-file-invoice-dollar"></i></button>';
-                    if($data->bayar < $data->total && $data->latestStatus->status != 'taken'){
+                    if($data->latestStatus->status != 'taken'){
                         $html .= '<button class="btn btn-success btn-icon mx-2" type="button" onclick="editStatus('.$data->id.')" title="Edit Status"><i class="fas fa-tasks"></i></button>';
                         $html .= '<button class="btn btn-warning btn-icon" type="button" onclick="window.location.href=\''.route('transaksi.edit', ['transaksi' => $data->id]).'\'" title="Edit"><i class="fas fa-edit"></i></button>';
                     }
@@ -112,7 +112,7 @@ class TransaksiController extends Controller
             $post['deadline'] = isset($post['batas_waktu']) ? date('Y-m-d H:i:s', strtotime($post['batas_waktu'])) : null;
             $post['no_invoice'] =  AutoNumber::generate('transaksi', 'id', 'INV-'.$post['outlets_id'].'{Y}{m}{d}:4');
             $post['users_id'] = auth()->user()->id;
-            if($post['status'] == 'taken') $post['payment_date'] = now();
+            if($post['bayar'] > 0) $post['payment_date'] = now();
             $transaksi = Transaksi::create($post);
             $transaksi_detail = Arr::map($post['produk'], function ($produk) use ($transaksi) {
                 return [
@@ -164,7 +164,7 @@ class TransaksiController extends Controller
         DB::beginTransaction();
         try{
             $transaksi = Transaksi::findOrfail($id);
-            if($request->status == 'taken'):
+            if($request->bayar > 0):
                 $post['payment_date'] = now();
                 $transaksi->update($post);
             endif;
@@ -275,15 +275,10 @@ class TransaksiController extends Controller
                 ]);
             endif;
             DB::commit();
-            return response()->json([
-                'message' => 'Berhasil Memperbarui Transaksi' 
-            ], 200);
+            return to_route('transaksi.index')->with('success_message', 'Berhasil Memperbarui Transaksi');
         }catch(Exception $e){
             DB::rollBack();
-            dd($e);
-            return response()->json([
-                'message' => 'Gagal Memperbarui Transaksi',
-            ], $e->getCode() ?: 500);
+            return redirect()->back()->with('error_message', 'Gagal Memperbarui Transaksi');
         }
     }
 

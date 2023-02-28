@@ -240,12 +240,21 @@
 					<td>: </td>
 					<td class="text-right">{{Locale::numberFormat($model->bayar)}}</td>
 				</tr>
-				<tr class="total">
-					<td></td>
-					<td>Kembali: </td>
-					<td>: </td>
-					<td class="text-right">{{Locale::numberFormat($model->kembali)}}</td>
-				</tr>
+					@if($model->bayar >= $model->total)
+					<tr class="total">
+						<td></td>
+						<td>Kembali: </td>
+						<td>: </td>
+						<td class="text-right">{{Locale::numberFormat($model->kembali)}}</td>
+					</tr>
+					@else
+					<tr class="total">
+						<td></td>
+						<td>Kurang Bayar: </td>
+						<td>: </td>
+						<td class="text-right">{{Locale::numberFormat($model->total - $model->bayar)}}</td>
+					</tr>
+					@endif
 				@endif
 			</table>
 		</div>
