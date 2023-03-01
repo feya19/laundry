@@ -119,8 +119,12 @@ class TransaksiController extends Controller
             $post['deadline'] = isset($post['batas_waktu']) ? date('Y-m-d H:i:s', strtotime($post['batas_waktu'])) : null;
             $post['no_invoice'] =  AutoNumber::generate('transaksi', 'id', 'INV-'.$post['outlets_id'].'{Y}{m}{d}:4');
             $post['users_id'] = auth()->user()->id;
-            if($post['bayar'] > 0) $post['payment_date'] = now();
+            if($post['bayar'] > 0)$post['payment_date'] = now();
             $transaksi = Transaksi::create($post);
+            if($request->status == 'done'):
+                $transaksi->pelanggan = Pelanggan::find($transaksi->pelanggan_id);
+                if($transaksi->pelanggan) $this->whatsapp->transaksiTextSend($transaksi);
+            endif;
             $transaksi_detail = Arr::map($post['produk'], function ($produk) use ($transaksi) {
                 return [
                     'transaksi_id' => $transaksi->id,
@@ -138,7 +142,7 @@ class TransaksiController extends Controller
                 'created_at' => now()
             ]);
             DB::commit();
-            Log::info('Status Transaksi '.$transaksi->no_invoice.' Telah Diupdate Oleh '.auth()->user()->username);
+            Log::info('Status Transaksi '.$transaksi->no_invoice.' Telah Ditambah Oleh '.auth()->user()->username);
             return to_route('transaksi.create')->with('success_message', 'Berhasil Menambahkan Transaksi');
         }catch(Exception $e){
             DB::rollBack();
@@ -155,6 +159,12 @@ class TransaksiController extends Controller
                 ], 404);
             }
             $model->status = $model->latestStatus->status;
+            $model->subtotal = Locale::numberFormat($model->subtotal);
+            $model->diskon = Locale::numberFormat($model->diskon);
+            $model->potongan = Locale::numberFormat($model->potongan);
+            $model->biaya_tambahan = Locale::numberFormat($model->biaya_tambahan);
+            $model->ppn = Locale::numberFormat($model->ppn);
+            $model->total = Locale::numberFormat($model->total);
             $status = Transaksi::enumStatus();
             return view('transaksi.update-status', compact('model', 'status'));
         }catch(Exception $e){
@@ -243,6 +253,12 @@ class TransaksiController extends Controller
             $pelanggan = Pelanggan::findOrfail($model->pelanggan_id)->pluck('nama', 'id')->toArray();
             $model->deadline = date('Y-m-d H:i', strtotime($model->deadline));
             $model->status = $model->latestStatus->status;
+            $model->subtotal = Locale::numberFormat($model->subtotal);
+            $model->diskon = Locale::numberFormat($model->diskon);
+            $model->potongan = Locale::numberFormat($model->potongan);
+            $model->biaya_tambahan = Locale::numberFormat($model->biaya_tambahan);
+            $model->ppn = Locale::numberFormat($model->ppn);
+            $model->total = Locale::numberFormat($model->total);
             $status = Transaksi::enumStatus();
             return view('transaksi.edit', compact('model', 'status', 'pelanggan'));
         }catch(Exception $e){

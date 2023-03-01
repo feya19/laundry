@@ -6,7 +6,23 @@
     @if (isset($model))
         <div class="portlet">
             <div class="portlet-header dashboard-status-header">
-                Status Transaksi Periode {{date('Y')}}
+                <div class="portlet-title">
+                    Status Transaksi Periode {{date('Y')}}
+                </div>
+                <div class="portlet-addon">
+                    <!-- BEGIN Dropdown -->
+                    <div class="dropdown">
+                        <button class="btn btn-label-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false" id="buttonMonth">{{Locale::month(date('m'))}}</button>
+                        <div class="dropdown-menu dropdown-menu-right dropdown-menu-animated" x-placement="bottom-end" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(100px, 29px, 0px);">
+                            @foreach (Locale::month() as $key => $item)
+                            <a class="dropdown-item" href="javascript:filterDashboard('{{$key}}', '{{$item}}');">
+                                <span class="dropdown-content">{{$item}}</span>
+                            </a>
+                            @endforeach
+                        </div>
+                    </div>
+                    <!-- END Dropdown -->
+                </div>
             </div>
             <!-- BEGIN Widget -->
             <div class="widget10 widget10-vertical-md">
@@ -115,7 +131,7 @@
             </div>
         </div>
         <div class="row portlet-row-fill-md">
-            <div class="col-md-6 col-xl-12">
+            <div class="col-md-4 col-xl-12">
                 <!-- BEGIN Portlet -->
                 <div class="portlet">
                     <div class="portlet-body">
@@ -123,7 +139,7 @@
                         <div class="widget10-item p-0">
                             <div class="widget10-content">
                                 <h2 class="widget10-title" id="pembayaran">...</h2>
-                                <span class="widget10-subtitle">Total Pembayaran</span>
+                                <span class="widget10-subtitle">Total Transaksi</span>
                             </div>
                             <div class="widget10-addon">
                                 <!-- BEGIN Avatar -->
@@ -138,12 +154,12 @@
                         <!-- END Widget -->
                     </div>
                     <!-- BEGIN Chart -->
-                    <div id="chartPembayaran" data-chart-identifier="pembayaran"  class="widget11 widget11-bottom widget-chart-7" data-chart-color="#2196f3" data-chart-label="Pembayaran" data-chart-series=""></div>
+                    <div id="chartPembayaran" data-chart-identifier="pembayaran"  class="widget11 widget11-bottom widget-chart-7" data-chart-color="#2196f3" data-chart-label="Total Transaksi" data-chart-series=""></div>
                     <!-- END Chart -->
                 </div>
                 <!-- END Portlet -->
             </div>
-            <div class="col-md-6 col-xl-12">
+            <div class="col-md-4 col-xl-12">
                 <!-- BEGIN Portlet -->
                 <div class="portlet">
                     <div class="portlet-body">
@@ -171,6 +187,42 @@
                 </div>
                 <!-- END Portlet -->
             </div>
+            <div class="col-md-4 col-xl-12">
+                <div class="portlet">
+                    <div class="portlet-body">
+                        <!-- BEGIN Widget -->
+                        <div class="widget10-item p-0">
+                            <div class="widget10-content">
+                                <h2 class="widget10-title" id="pajak">...</h2>
+                                <span class="widget10-subtitle">Total Pajak</span>
+                            </div>
+                            <div class="widget10-addon">
+                                <!-- BEGIN Avatar -->
+                                <div class="avatar avatar-label-warning avatar-circle widget8-avatar m-0">
+                                    <div class="avatar-display">
+                                        <i class="fa fa-dollar-sign"></i>
+                                    </div>
+                                </div>
+                                <!-- END Avatar -->
+                            </div>
+                        </div>
+                        <!-- END Widget -->
+                    </div>
+                    <!-- BEGIN Chart -->
+                    <div id="chartPajak" data-chart-identifier="pajak"  class="widget11 widget11-bottom widget-chart-7" data-chart-color="#ffe715" data-chart-label="Total Pajak" data-chart-series=""></div>
+                    <!-- END Chart -->
+                </div>
+            </div>
+        </div>
+        <div class="portlet portlet-primary">
+            <div class="portlet-header">
+                <div class="portlet-icon">
+                    <i class="fa fa-users"></i>
+                </div>
+                <h3 class="portlet-title">Top 5 Pelanggan Teraktif</h3>
+            </div>
+            <div class="portlet-body" id="top-pelanggan">
+            </div>
         </div>
         @else
         <div class="card">
@@ -186,20 +238,59 @@
 @endsection
 @push('script')
     <script>
+        var month = '{{date('m')}}';
+        var text;
         $(setTimeout(() => {
-            axios.get('{{route('statusTransaksi', ['outlet' => session('outlets_id')])}}')
+            filterDashboard(month);
+        }), 100);
+
+        function filterDashboard(param, text = ''){
+            month = param;
+            text != '' && $('#buttonMonth').text(text);
+            axios.get('{{route('statusTransaksi', ['outlet' => session('outlets_id')])}}/'+month)
             .then((responses)=>{
                 var response = responses.data.data;
                 $.each(response, (i, v) => {
+                    console.log(i)
                     if(i != 'chart'){
-                        var val = i == 'pembayaran' ? localization.number(v) : (i == 'transaksi' ? localization.number(v, 0) : v );
+                        var val = (i == 'pembayaran' || i == 'pajak' ? localization.number(v) : (i == 'transaksi' ? localization.number(v, 0) : v ));
                         $(`#${i}`).text(val);
+                    }
+                    if(i == 'pelanggan'){
+                        var html = '';
+                        $.each(v, function(index, value){
+                            html += `<div class="portlet mb-2">
+                                        <div class="portlet-body">
+                                            <!-- BEGIN Widget -->
+                                            <div class="widget5">
+                                                <h3 class="widget5-title">${value.nama}</h3>
+                                                <div class="widget5-group">
+                                                    <div class="widget5-item">
+                                                        <span class="widget5-info">Jumlah Transaksi</span>
+                                                        <span class="widget5-value">${value.transaksi}</span>
+                                                    </div>
+                                                    <div class="widget5-item">
+                                                        <span class="widget5-info">Total Transaksi</span>
+                                                        <span class="widget5-value text-success">${localization.number(value.total)}</span>
+                                                    </div>
+                                                    <div class="widget5-item">
+                                                        <span class="widget5-info">Total Dibayarkan</span>
+                                                        <span class="widget5-value text-success">${localization.number(value.pembayaran)}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- END Widget -->
+                                        </div>
+                                    </div>`;
+                        });
+                        $('#top-pelanggan').html(html)
                     }
                 })
                 $('#chartPembayaran').data('chart-series', response.chart.pembayaran);
                 $('#chartTransaksi').data('chart-series', response.chart.transaksi);
+                $('#chartPajak').data('chart-series', response.chart.pajak);
                 var months = response.chart.month.split(',')
-                var colors={blue:"#2196f3",green:"#4caf50",white:"#fff",black:"#424242"}
+                var colors={blue:"#2196f3",green:"#4caf50", yellow: "#ffe715",white:"#fff",black:"#424242"}
                 var themeOptions={light:{theme:{mode:"light",palette:"palette1"}},dark:{theme:{mode:"dark",palette:"palette1"}}};
                 var isDarkDefault=localStorage.getItem("theme-variant")=="dark"
                 var themeVariantDefault=isDarkDefault?"dark":"light"
@@ -221,11 +312,6 @@
                             height:200,
                             background:"transparent",
                             sparkline:{enabled:true},
-                            events: {
-                                mounted: (chart) => {
-                                    chart.windowResizeHandler();
-                                }
-                            }
                         },
                         noData: {
                             text: 'No Data Available'
@@ -240,6 +326,6 @@
                 });
                 chart.each(function(){this.render()})
             })
-        }), 100);
+        }
     </script>
 @endpush

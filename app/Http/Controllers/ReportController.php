@@ -58,7 +58,7 @@ class ReportController extends Controller
 
         $spreadsheet = IOFactory::load(public_path('assets/report/transaksi.xlsx'));
         $worksheet = $spreadsheet->getActiveSheet();
-        $spreadsheet->getActiveSheet()->getStyle('A7:N7')->applyFromArray($styleHeader);
+        $spreadsheet->getActiveSheet()->getStyle('A7:O7')->applyFromArray($styleHeader);
         $row = 8;
         $grand_total = 0;
                
@@ -87,7 +87,8 @@ class ReportController extends Controller
             }
             $worksheet->getCell('L' . $row)->setValue($diskon);
             $worksheet->getCell('M' . $row)->setValue($data->biaya_tambahan);
-            $worksheet->getCell('N' . $row)->setValue($data->total);
+            $worksheet->getCell('N' . $row)->setValue($data->ppn);
+            $worksheet->getCell('O' . $row)->setValue($data->total);
             foreach ($data->transaksiDetail as $transaksi) {
                 $worksheet->getCell('G' . $row)->setValue($transaksi->produk->nama);
                 $worksheet->getCell('H' . $row)->setValue(Locale::numberFormat($transaksi->harga));
@@ -98,9 +99,9 @@ class ReportController extends Controller
             }
         }
         $worksheet->getCell('A' . $row)->setValue('Grand Total');
-        $worksheet->getCell('N' . $row)->setValue($grand_total);
-        $spreadsheet->getActiveSheet()->mergeCells('A' . $row . ':M' . $row);
-        $spreadsheet->getActiveSheet()->getStyle('A'.$row.':N'. $row)->applyFromArray($styleHeader);
+        $worksheet->getCell('O' . $row)->setValue($grand_total);
+        $spreadsheet->getActiveSheet()->mergeCells('A' . $row . ':N' . $row);
+        $spreadsheet->getActiveSheet()->getStyle('A'.$row.':O'. $row)->applyFromArray($styleHeader);
 
         foreach ($worksheet->getColumnDimensions() as $colDim) {
             $colDim->setAutoSize(true);

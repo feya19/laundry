@@ -11,7 +11,7 @@ class Transaksi extends Model
     protected $table = 'transaksi';
     protected $fillable = [
         'outlets_id', 'pelanggan_id', 'no_invoice', 'deadline', 'subtotal', 'diskon', 'potongan', 'biaya_tambahan',
-        'total', 'bayar', 'kembali', 'payment_date', 'note', 'users_id', 'updated_by'
+        'ppn', 'ppn_persen', 'total', 'bayar', 'kembali', 'payment_date', 'note', 'users_id', 'updated_by'
     ];
 
     /** Relations */

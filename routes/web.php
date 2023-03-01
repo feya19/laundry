@@ -30,7 +30,7 @@ Auth::routes([
 
 Route::middleware(['auth'])->group(function(){
     Route::get('/', [HomeController::class, 'index'])->name('home');
-    Route::get('/status-transaksi/{outlet?}', [HomeController::class, 'statusTransaksi'])->name('statusTransaksi');
+    Route::get('/status-transaksi/{outlet?}/{month?}', [HomeController::class, 'statusTransaksi'])->name('statusTransaksi');
     Route::get('settings', [HomeController::class, 'settings'])->name('settings');
     Route::post('change-profile', [HomeController::class, 'changeProfile'])->name('changeProfile');
     Route::post('change-password', [HomeController::class, 'changePassword'])->name('changePassword');
