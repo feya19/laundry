@@ -4,6 +4,32 @@
 @extends('layouts.app')
 @section('content')
     @if (isset($model))
+        <div class="row portlet-row-fill-sm">
+            <div class="col-md-6">
+                <div class="portlet portlet-primary">
+                    <div class="portlet-header">
+                        <h3 class="portlet-title">Total Dibayarkan Hari ini</h3>
+                    </div>
+                    <div class="portlet-body widget3 widget3-sm">
+                        <div class="widget3-display justify-content-end">
+                            <h3 class="widget3-title text-white">{{Locale::numberFormat($model->pembayaran)}} <sub class="widget3-subtitle"></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="portlet">
+                    <div class="portlet-header">
+                        <h3 class="portlet-title">Total Transaksi Hari ini</h3>
+                    </div>
+                    <div class="portlet-body widget3 widget3-sm">
+                        <div class="widget3-display justify-content-end">
+                            <h3 class="widget3-title">{{Locale::numberFormat($model->transaksi)}} <sub class="widget3-subtitle"></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="portlet">
             <div class="portlet-header dashboard-status-header">
                 <div class="portlet-title">
@@ -103,32 +129,6 @@
                 </div>
             </div>
             <!-- END Widget -->
-        </div>
-        <div class="row portlet-row-fill-sm">
-            <div class="col-md-6">
-                <div class="portlet portlet-primary">
-                    <div class="portlet-header">
-                        <h3 class="portlet-title">Total Dibayarkan Hari ini</h3>
-                    </div>
-                    <div class="portlet-body widget3 widget3-sm">
-                        <div class="widget3-display justify-content-end">
-                            <h3 class="widget3-title text-white">{{Locale::numberFormat($model->pembayaran)}} <sub class="widget3-subtitle"></h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="portlet">
-                    <div class="portlet-header">
-                        <h3 class="portlet-title">Total Transaksi Hari ini</h3>
-                    </div>
-                    <div class="portlet-body widget3 widget3-sm">
-                        <div class="widget3-display justify-content-end">
-                            <h3 class="widget3-title">{{Locale::numberFormat($model->transaksi)}} <sub class="widget3-subtitle"></h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
         <div class="row portlet-row-fill-md">
             <div class="col-md-4 col-xl-12">
@@ -286,6 +286,7 @@
                         $('#top-pelanggan').html(html)
                     }
                 })
+                $('#chartPembayaran,#chartTransaksi,#chartPajak').html('');
                 $('#chartPembayaran').data('chart-series', response.chart.pembayaran);
                 $('#chartTransaksi').data('chart-series', response.chart.transaksi);
                 $('#chartPajak').data('chart-series', response.chart.pajak);
@@ -320,7 +321,7 @@
                         stroke:{show:true,colors:[color]},
                         markers:{colors:isDarkDefault?colors.black:colors.white,strokeWidth:4,strokeColors:color},
                         tooltip:{marker:{show:false},
-                        y:{formatter:(val) => {return id_chart == 'pembayaran' ? localization.number(val) : val/150000}}},
+                        y:{formatter:(val) => {return (id_chart == 'pembayaran' || id_chart == 'pajak' ? localization.number(val) : val/150000)}}},
                         xaxis:{categories:months,
                         crosshairs:{show:false}}}))
                 });
