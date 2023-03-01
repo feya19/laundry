@@ -103,6 +103,12 @@ class Locale {
 		return self::listDay($day).', '.$humanDate;
 	}
 
+	public static function humanDateLabel($timestamp){
+		$humanDate = self::humanDate($timestamp);
+		$day = date('l', strtotime($timestamp));
+		return self::listDay($day).': '.$humanDate;
+	}
+
 	public static function boolean($boolean, $true = null, $false = null) {
 		if ($boolean) {
 			if (!$true) {

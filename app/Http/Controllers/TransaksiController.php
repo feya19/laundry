@@ -15,10 +15,17 @@ use DragonCode\Support\Facades\Helpers\Arr;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 
 class TransaksiController extends Controller
 {
+    protected $whatsapp;
+    public function __construct(WhatsappController $whatsappController)
+    {
+        $this->whatsapp = $whatsappController;
+    }
+
     public function index()
     {
         $title = 'Transaksi';
@@ -112,8 +119,12 @@ class TransaksiController extends Controller
             $post['deadline'] = isset($post['batas_waktu']) ? date('Y-m-d H:i:s', strtotime($post['batas_waktu'])) : null;
             $post['no_invoice'] =  AutoNumber::generate('transaksi', 'id', 'INV-'.$post['outlets_id'].'{Y}{m}{d}:4');
             $post['users_id'] = auth()->user()->id;
-            if($post['bayar'] > 0) $post['payment_date'] = now();
+            if($post['bayar'] > 0)$post['payment_date'] = now();
             $transaksi = Transaksi::create($post);
+            if($request->status == 'done'):
+                $transaksi->pelanggan = Pelanggan::find($transaksi->pelanggan_id);
+                if($transaksi->pelanggan) $this->whatsapp->transaksiTextSend($transaksi);
+            endif;
             $transaksi_detail = Arr::map($post['produk'], function ($produk) use ($transaksi) {
                 return [
                     'transaksi_id' => $transaksi->id,
@@ -131,6 +142,7 @@ class TransaksiController extends Controller
                 'created_at' => now()
             ]);
             DB::commit();
+            Log::info('Status Transaksi '.$transaksi->no_invoice.' Telah Ditambah Oleh '.auth()->user()->username);
             return to_route('transaksi.create')->with('success_message', 'Berhasil Menambahkan Transaksi');
         }catch(Exception $e){
             DB::rollBack();
@@ -147,6 +159,12 @@ class TransaksiController extends Controller
                 ], 404);
             }
             $model->status = $model->latestStatus->status;
+            $model->subtotal = Locale::numberFormat($model->subtotal);
+            $model->diskon = Locale::numberFormat($model->diskon);
+            $model->potongan = Locale::numberFormat($model->potongan);
+            $model->biaya_tambahan = Locale::numberFormat($model->biaya_tambahan);
+            $model->ppn = Locale::numberFormat($model->ppn);
+            $model->total = Locale::numberFormat($model->total);
             $status = Transaksi::enumStatus();
             return view('transaksi.update-status', compact('model', 'status'));
         }catch(Exception $e){
@@ -163,18 +181,23 @@ class TransaksiController extends Controller
         $post['updated_by'] = auth()->user()->username;
         DB::beginTransaction();
         try{
-            $transaksi = Transaksi::findOrfail($id);
-            if($request->bayar > 0):
+            $transaksi = Transaksi::with(['pelanggan', 'outlet'])->findOrfail($id);
+            if($request->status == 'taken'):
                 $post['payment_date'] = now();
-                $transaksi->update($post);
+            elseif($request->status == 'done'):
+                $response = $this->whatsapp->transaksiTextSend($transaksi);
             endif;
-            TransaksiStatus::insert([
-                'transaksi_id' => $id,
-                'status' => $post['status'],
-                'users_id' => auth()->user()->id,
-                'created_at' => now()
-            ]);
+            if($post['lastStatus'] != $post['status']){
+                TransaksiStatus::insert([
+                    'transaksi_id' => $transaksi->id,
+                    'status' => $post['status'],
+                    'users_id' => auth()->user()->id,
+                    'created_at' => now()
+                ]);
+            }
+            $transaksi->update($post);
             DB::commit();
+            Log::info('Status Transaksi '.$transaksi->no_invoice.' Telah Diupdate Oleh '.auth()->user()->username);
             return response()->json([
                 'message' => 'Berhasil Memperbarui Status Transaksi'
             ], 200);
@@ -230,6 +253,12 @@ class TransaksiController extends Controller
             $pelanggan = Pelanggan::findOrfail($model->pelanggan_id)->pluck('nama', 'id')->toArray();
             $model->deadline = date('Y-m-d H:i', strtotime($model->deadline));
             $model->status = $model->latestStatus->status;
+            $model->subtotal = Locale::numberFormat($model->subtotal);
+            $model->diskon = Locale::numberFormat($model->diskon);
+            $model->potongan = Locale::numberFormat($model->potongan);
+            $model->biaya_tambahan = Locale::numberFormat($model->biaya_tambahan);
+            $model->ppn = Locale::numberFormat($model->ppn);
+            $model->total = Locale::numberFormat($model->total);
             $status = Transaksi::enumStatus();
             return view('transaksi.edit', compact('model', 'status', 'pelanggan'));
         }catch(Exception $e){
@@ -253,7 +282,8 @@ class TransaksiController extends Controller
         try{
             $post['updated_by'] =  auth()->user()->username;
             if($post['status'] == 'taken') $post['payment_date'] = now();
-            Transaksi::findOrfail($id)->update($post);
+            $transaksi = Transaksi::findOrfail($id);
+            $no_invoice = $transaksi->no_invoice;
             TransaksiDetail::where('transaksi_id', $id)->delete();
             $transaksi_detail = Arr::map($post['produk'], function ($produk) use ($id) {
                 return [
@@ -274,7 +304,9 @@ class TransaksiController extends Controller
                     'created_at' => now()
                 ]);
             endif;
+            $transaksi->update($post);
             DB::commit();
+            Log::info('Transaksi '.$no_invoice.' Telah Diupdate Oleh '.auth()->user()->username);
             return to_route('transaksi.index')->with('success_message', 'Berhasil Memperbarui Transaksi');
         }catch(Exception $e){
             DB::rollBack();
@@ -293,6 +325,7 @@ class TransaksiController extends Controller
         DB::beginTransaction();
         try{
             $model = Transaksi::outletAktif()->find($id);
+            $no_invoice = $model->no_invoice;
             if(!$model){
                 return response()->json([
                     'message' => 'Transaksi Tidak Ditemukan'
@@ -300,6 +333,7 @@ class TransaksiController extends Controller
             }
             $model->delete();
             DB::commit();
+            Log::info('Transaksi '.$no_invoice.' Telah Dihapus Oleh '.auth()->user()->username);
             return response()->json([
                 'message' => 'Berhasil Menghapus Transaksi'
             ], 200);

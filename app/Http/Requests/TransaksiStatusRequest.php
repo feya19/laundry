@@ -18,6 +18,8 @@ class TransaksiStatusRequest extends FormRequest
     public function prepareForValidation(): void
     {
         $this->merge([
+            'ppn' => Locale::numberValue($this->ppn),
+            'ppn_persen' => Locale::numberValue($this->ppn_persen),
             'subtotal' => Locale::numberValue($this->subtotal),
             'diskon' => Locale::numberValue($this->diskon),
             'potongan' => Locale::numberValue($this->potongan),
@@ -36,11 +38,14 @@ class TransaksiStatusRequest extends FormRequest
     public function rules(): array
     {
         return  [
+            'lastStatus' => 'required',
             'status' => 'required',
             'subtotal' => 'required|numeric|gte:0',
             'diskon' => 'numeric|gte:0|max:100',
             'potongan' => 'numeric|gte:0|max:'.$this->subtotal,
             'biaya_tambahan' => 'numeric|gte:0',
+            'ppn' => 'numeric|gte:0',
+            'ppn_persen' => 'numeric|in:'.env('TAX', 11),
             'total' => 'numeric|gte:0',
             'bayar' => 'numeric|gte:'.($this->status == 'taken' ? $this->total : 0),
             'kembali' => 'numeric|gte:0'

@@ -26,13 +26,23 @@
                 {!! Form::text('potongan', $model->potongan ?? 0, ['class' => 'form-control text-right', 'id' => 'potongan', 'data-input-type' => 'number-format']) !!}
             </div>
         </div>
-        <div class="form-group">
-            <label for="biaya_tambahan">Biaya Tambahan</label>
-            {!! Form::text('biaya_tambahan', $model->biaya_tambahan ?? 0, ['class' => 'form-control text-right', 'id' => 'biaya_tambahan', 'data-input-type' => 'number-format']) !!}
-        </div>
-        <div class="form-group">
-            <label for="total">Total Biaya</label>
-            {!! Form::text('total', $model->total ?? 0, ['class' => 'form-control text-right', 'id' => 'total', 'data-input-type' => 'number-format', 'readonly']) !!}
+        <div class="form-row">
+            <div class="form-group col-6">
+                <label for="ppn">PPN</label>
+                {!! Form::hidden('ppn', $model->ppn ?? 0, ['id' => 'ppn']) !!}
+                <div class="input-group">
+                    {!! Form::text('ppn_persen', $model->ppn_persen ?? env('TAX', 11), ['class' => 'form-control text-right '.add_error($errors, 'ppn_persen'), 'id' => 'ppn_persen', 'data-input-type' => 'number-format', 'readonly']) !!}
+                    <div class="input-group-append">
+                        <span class="input-group-text">
+                            <i class="fa fa-percent"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col-6">
+                <label for="total">Total Biaya</label>
+                {!! Form::text('total', $model->total ?? 0, ['class' => 'form-control text-right', 'id' => 'total', 'data-input-type' => 'number-format', 'readonly']) !!}
+            </div>
         </div>
         <div class="form-group">
             <label for="bayar">Bayar</label>
@@ -78,7 +88,12 @@
         var diskon = toFloat($('#diskon').val());
         var potongan = toFloat($('#potongan').val());
         var biaya_tambahan = toFloat($('#biaya_tambahan').val());
-        $('#total').val(subtotal - potongan - (subtotal * diskon / 100) + biaya_tambahan);
+        var total_before = subtotal - potongan - (subtotal * diskon / 100) + biaya_tambahan;
+        var ppn_persen = $('#ppn_persen').val();
+        var ppn = (total_before * toFloat(ppn_persen)) / 100;
+        $('#ppn').val(ppn);
+        var total = total_before + ppn;
+        $('#total').val(total);
     }
 
     function setPembayaran(){
