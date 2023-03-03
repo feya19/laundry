@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Library\Locale;
+use App\Models\JenisProduk;
+use App\Models\Outlet;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ProdukRequest extends FormRequest
@@ -21,7 +23,7 @@ class ProdukRequest extends FormRequest
     public function prepareForValidation(): void
     {
         $this->merge([
-            'harga' => Locale::numberValue($this->harga) ?? $this->harga
+            'harga' => $this->harga ? Locale::numberValue($this->harga) : $this->harga
         ]);
     }
 
