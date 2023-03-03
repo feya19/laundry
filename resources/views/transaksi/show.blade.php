@@ -91,12 +91,17 @@
             <tr>
                 <td style="border-top: 0; width: 120px">Dibayar Pada</td>
                 <td style="border-top: 0; width: 1px">:</td>
-                <td style="border-top: 0;">{{ Locale::humanDateTime($model->transaksiStatus->sortByDesc('created_at')->firstWhere('status', 'taken')->created_at) ?? '' }}</td>
+                <td style="border-top: 0;">{{ Locale::humanDateTime($model->transaksiStatus->sortByDesc('created_at')->firstWhere('status', 'taken')->created_at ?? '') ?? '' }}</td>
             </tr>
         </table>
     </div>
     <div class="col-6">
         <table class="table">
+            <tr>
+                <td style="border-top: 0; width: 120px">PPN</td>
+                <td style="border-top: 0; width: 1px">:</td>
+                <td style="border-top: 0;">{{ Locale::numberFormat($model->ppn) }}</td>
+            </tr>
             <tr>
                 <td style="border-top: 0; width: 120px">Total</td>
                 <td style="border-top: 0; width: 1px">:</td>

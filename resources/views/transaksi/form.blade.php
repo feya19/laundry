@@ -24,7 +24,7 @@ $pelanggan = old('pelanggan_id') ? App\Models\Pelanggan::find(old('pelanggan_id'
                 <div class="form-group">
                     <label for="name">Pelanggan <span class="text-danger">*</span></label>
                     <div class="input-group">
-                        {!! Form::select('pelanggan_id', ['' => 'Pilih']+$pelanggan, null, ['class' => 'form-control '.add_error($errors, 'pelanggan_id'), 'id' => 'pelanggan']) !!}
+                        {!! Form::select('pelanggan_id', ['' => 'Pilih']+$pelanggan, $model->pelanggan_id ?? '', ['class' => 'form-control '.add_error($errors, 'pelanggan_id'), 'id' => 'pelanggan']) !!}
                         <div class="input-group-append">
                             <button type="button" class="btn btn-primary" id="btnAddPelanggan" onclick="formAddPelanggan()"><i class="fa fa-plus"></i></button>
                         </div>
@@ -41,7 +41,7 @@ $pelanggan = old('pelanggan_id') ? App\Models\Pelanggan::find(old('pelanggan_id'
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="batas_waktu">Batas Waktu <span class="text-danger">*</span></label>
-                    {!! Form::text('batas_waktu', $model->deadline ?? '', ['class' => 'form-control '.add_error($errors, 'batas_waktu'), 'id' => 'batas_waktu', 'autocomplete' => 'off']) !!}
+                    {!! Form::text('batas_waktu', $model->deadline ?? (old('batas_waktu') ?? ''), ['class' => 'form-control '.add_error($errors, 'batas_waktu'), 'id' => 'batas_waktu', 'autocomplete' => 'off']) !!}
                     @error('batas_waktu')
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
@@ -180,27 +180,38 @@ $pelanggan = old('pelanggan_id') ? App\Models\Pelanggan::find(old('pelanggan_id'
         <p class="portlet-title">Pembayaran</p>
     </div>
     <div class="portlet-body">
-        <div class="form-group">
-            <label for="subtotal">Subtotal</label>
-            {!! Form::text('subtotal', $model->subtotal ?? 0, ['class' => 'form-control text-right '.add_error($errors, 'subtotal'), 'id' => 'subtotal', 'readonly', 'data-input-type' => 'number-format', 'onchange' => 'setTotal()']) !!}
-            @error('subtotal')
-                <span class="invalid-feedback" role="alert">
-                    <strong>{{ $message }}</strong>
-                </span>
-            @enderror
-        </div>
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
-                    <label for="diskon">Diskon</label>
-                    {!! Form::text('diskon', $model->diskon ?? 0, ['class' => 'form-control text-right '.add_error($errors, 'diskon'), 'id' => 'diskon', 'data-input-type' => 'number-format']) !!}
-                    @error('diskon')
+                    <label for="subtotal">Subtotal</label>
+                    {!! Form::text('subtotal', $model->subtotal ?? 0, ['class' => 'form-control text-right '.add_error($errors, 'subtotal'), 'id' => 'subtotal', 'readonly', 'data-input-type' => 'number-format', 'onchange' => 'setTotal()']) !!}
+                    @error('subtotal')
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
                         </span>
                     @enderror
                 </div>
             </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="diskon">Diskon</label>
+                    <div class="input-group">
+                        {!! Form::text('diskon', $model->diskon ?? 0, ['class' => 'form-control text-right '.add_error($errors, 'diskon'), 'id' => 'diskon', 'data-input-type' => 'number-format']) !!}
+                        <div class="input-group-append">
+                            <span class="input-group-text">
+                                <i class="fa fa-percent"></i>
+                            </span>
+                        </div>
+                        @error('diskon')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="potongan">Potongan</label>
@@ -212,8 +223,6 @@ $pelanggan = old('pelanggan_id') ? App\Models\Pelanggan::find(old('pelanggan_id'
                     @enderror
                 </div>
             </div>
-        </div>
-        <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="biaya_tambahan">Biaya Tambahan</label>
@@ -223,6 +232,27 @@ $pelanggan = old('pelanggan_id') ? App\Models\Pelanggan::find(old('pelanggan_id'
                             <strong>{{ $message }}</strong>
                         </span>
                     @enderror
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="ppn">PPN</label>
+                    <div class="input-group">
+                        {!! Form::hidden('ppn', $model->ppn ?? 0, ['id' => 'ppn']) !!}
+                        {!! Form::text('ppn_persen', $model->ppn_persen ?? env('TAX', 11), ['class' => 'form-control text-right '.add_error($errors, 'ppn_persen'), 'id' => 'ppn_persen', 'data-input-type' => 'number-format', 'readonly']) !!}
+                        <div class="input-group-append">
+                            <span class="input-group-text">
+                                <i class="fa fa-percent"></i>
+                            </span>
+                        </div>
+                        @error('ppn_persen')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                        @enderror
+                    </div>
                 </div>
             </div>
             <div class="col-md-6">

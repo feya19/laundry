@@ -10,8 +10,10 @@ use App\Models\Transaksi;
 use App\Models\TransaksiDetail;
 use App\Models\TransaksiStatus;
 use App\Models\User;
+use DragonCode\Support\Facades\Helpers\Arr;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -21,6 +23,11 @@ use Illuminate\View\View;
 class HomeController extends Controller
 {
     const PROFILE_FOLDER = 'upload/profile';
+    protected $month;
+    public function __construct()
+    {
+        $this->month = date('m');
+    }
     /**
      * Show the application dashboard.
      *
@@ -30,10 +37,11 @@ class HomeController extends Controller
     {
         $title = "Dashboard";
         if($outlet = session('outlets_id')){
-            $model = Transaksi::selectRaw('SUM(total) AS transaksi, SUM(bayar) AS pembayaran')->where([
+            $month = $this->month;
+            $model = Transaksi::selectRaw('SUM(total) AS transaksi, SUM(bayar - kembali) AS pembayaran')->where([
                 ['outlets_id', $outlet],
-                ['created_at', '>=', date('Y-m-d 00:00:00')],
-                ['created_at', '<=', date('Y-m-d 23:59:59')]
+                ['created_at', '>=', date('Y-'.$month.'-01 00:00:00')],
+                ['created_at', '<=', date('Y-'.$month.'-t 23:59:59')]
             ])->first();
             return view('home', compact('title','model'));
         }
@@ -101,54 +109,55 @@ class HomeController extends Controller
         return redirect()->to($url);
     }
 
-    public function statusTransaksi($outlet): JsonResponse
+    public function statusTransaksi($outlet, $month = null): JsonResponse
     {
-        $model = Transaksi::with('latestStatus')
-        ->selectRaw("id, bayar, deadline, LEFT(created_at,7) AS periode")
+        $month = $month ?: $this->month;
+        $model = Transaksi::with(['pelanggan','latestStatus'])
+        ->select('*')
+        ->addSelect(DB::raw("LEFT(created_at,10) AS periode"))
         ->where([
             ['outlets_id', $outlet],
-            ['created_at', '>=', date('Y-01-01 00:00:00')],
-            ['created_at', '<=', date('Y-12-31 23:59:59')]
+            ['created_at', '>=', date('Y-'.$month.'-01 00:00:00')],
+            ['created_at', '<=', date('Y-'.$month.'-t 23:59:59')]
         ])->get();
         $status = $model->countBy('latestStatus.status');
-        $transaksi1 = collect([
-            '01' => ['label' => 'Januari', 'bayar' => 0, 'transaksi' => 0],
-			'02' => ['label' => 'Februari', 'bayar' => 0, 'transaksi' => 0],
-			'03' => ['label' => 'Maret', 'bayar' => 0, 'transaksi' => 0],
-			'04' => ['label' => 'April', 'bayar' => 0, 'transaksi' => 0],
-			'05' => ['label' => 'Mei', 'bayar' => 0, 'transaksi' => 0],
-			'06' => ['label' => 'Juni', 'bayar' => 0, 'transaksi' => 0],
-			'07' => ['label' => 'Juli', 'bayar' => 0, 'transaksi' => 0],
-			'08' => ['label' => 'Agustus', 'bayar' => 0, 'transaksi' => 0],
-			'09' => ['label' => 'September', 'bayar' => 0, 'transaksi' => 0],
-			'10' => ['label' => 'Oktober', 'bayar' => 0, 'transaksi' => 0],
-			'11' => ['label' => 'November', 'bayar' => 0, 'transaksi' => 0],
-			'12' => ['label' => 'Desember', 'bayar' => 0, 'transaksi' => 0],
-        ]);
-        $transaksi2 = $model->groupBy('periode')->mapWithKeys(function($data, $key){
-            $month = date('m', strtotime($key));
-            $bayar = $data->sum('bayar');
+        $transaksi = $model->groupBy('periode')->mapWithKeys(function($data, $key){
+            $days = date('d', strtotime($key));
             $count = $data->count('id');
-            return [$month => [
-                'label' => Locale::month($month),
-                'bayar' => $bayar,
+            $label = Locale::humanDateLabel($key);
+            return [$days => [
+                'days' => $days,
+                'label' => substr($label, 0, -5),
+                'bayar' => $data->sum('total'),
+                'pajak' => $data->sum('ppn'),
                 'transaksi' => $count * 150000
             ]];
-        });
-        $transaksi = $transaksi1->merge($transaksi2);
+        })->keyBy('days');
+        $top5 = $model->groupBy('pelanggan')->mapWithKeys(function($data, $key){
+            $pelanggan = json_decode($key);
+            return [$pelanggan->id => [
+                'nama' => $pelanggan->nama,
+                'transaksi' => $data->count(),
+                'total' => $data->sum('total'),
+                'pembayaran' => $data->sum('bayar') - $data->sum('kembali')
+            ]];
+        })->sortBy([['transaksi', 'desc'],['total', 'desc'],['pembayaran', 'desc']])->take(5)->values();
         $data = [
             'queue' => $status['queue'] ?? 0,
             'process' => $status['process'] ?? 0,
             'done' => $status['done'] ?? 0,
             'taken' => $status['taken'] ?? 0,
             'overdue' => $model->where('deadline', '<=', date('Y-m-d H:i:s'))->whereIn('latestStatus.status', ['queue', 'process'])->count(),
-            'pembayaran' => $model->sum('bayar'),
+            'pajak' => $model->sum('ppn'),
+            'pembayaran' => $model->sum('total'),
             'transaksi' => $model->count('id'),
             'chart' => [
                 'month' => $transaksi->implode('label', ','),
+                'pajak' => $transaksi->implode('pajak', ','),
                 'transaksi' => $transaksi->implode('transaksi', ','),
                 'pembayaran' => $transaksi->implode('bayar', ',')
-            ]
+            ],
+            'pelanggan' => $top5
         ];
         return response()->json([
             'data' => $data

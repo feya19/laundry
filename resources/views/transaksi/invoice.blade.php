@@ -229,6 +229,12 @@
 				</tr>
 				<tr class="total">
 					<td></td>
+					<td>PPN: </td>
+					<td>: </td>
+					<td class="text-right">{{Locale::numberFormat($model->ppn)}}</td>
+				</tr>
+				<tr class="total">
+					<td></td>
 					<td>Total: </td>
 					<td>: </td>
 					<td class="text-right">{{Locale::numberFormat($model->total)}}</td>

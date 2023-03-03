@@ -1,8 +1,8 @@
 <script>
     var used = [];
-    var invoice = '{{session('invoice') ? route('transaksi.invoice'. ['id' => session('invoice')]) : '' }}';
+    var bayarError = '{{$errors->has('bayar') ? true : false}}';
     $(() => {
-        if(invoice) window.open(invoice, '_blank');
+        if(bayarError) $('#modal-dialog').modal('show');
         $('#batas_waktu').datetimepicker({
             format: 'yyyy-mm-dd hh:ii',
             autoclose: true
@@ -187,7 +187,12 @@
         var diskon = toFloat($('#diskon').val());
         var potongan = toFloat($('#potongan').val());
         var biaya_tambahan = toFloat($('#biaya_tambahan').val());
-        $('#total,#total_biaya').val(subtotal - potongan - (subtotal * diskon / 100) + biaya_tambahan);
+        var total_before = subtotal - potongan - (subtotal * diskon / 100) + biaya_tambahan;
+        var ppn_persen = $('#ppn_persen').val();
+        var ppn = (total_before * toFloat(ppn_persen)) / 100;
+        $('#ppn').val(ppn);
+        var total = total_before + ppn;
+        $('#total,#total_biaya').val(total);
     }
 
     function setPembayaran(){

@@ -18,6 +18,8 @@ class TransaksiRequest extends FormRequest
     public function prepareForValidation(): void
     {
         $merge = [
+            'ppn' => Locale::numberValue($this->ppn),
+            'ppn_persen' => Locale::numberValue($this->ppn_persen),
             'subtotal' => Locale::numberValue($this->subtotal),
             'diskon' => Locale::numberValue($this->diskon),
             'potongan' => Locale::numberValue($this->potongan),
@@ -50,7 +52,7 @@ class TransaksiRequest extends FormRequest
         return [
             'pelanggan_id' => 'required',
             'status' => 'required',
-            'batas_waktu' => 'required|date_format:Y-m-d H:i|after_or_equal:'.now(),
+            'batas_waktu' => 'required|date_format:Y-m-d H:i'.($this->transaksi ? '' : '|after_or_equal:'.now()),
             'produk.*.produks_id' => 'required',
             'produk.*.harga' => 'required|numeric|gte:0',
             'produk.*.jumlah' => 'required|numeric|gte:1',
@@ -59,6 +61,8 @@ class TransaksiRequest extends FormRequest
             'diskon' => 'numeric|gte:0|max:100',
             'potongan' => 'numeric|gte:0|max:'.$this->subtotal,
             'biaya_tambahan' => 'numeric|gte:0',
+            'ppn' => 'numeric|gte:0',
+            'ppn_persen' => 'numeric|in:'.env('TAX', 11),
             'total' => 'numeric|gte:0',
             'bayar' => 'numeric|gte:'.($this->status == 'taken' ? $this->total : 0),
             'kembali' => 'numeric|gte:0',
