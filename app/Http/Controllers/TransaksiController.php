@@ -121,10 +121,10 @@ class TransaksiController extends Controller
             $post['users_id'] = auth()->user()->id;
             if($post['bayar'] > 0)$post['payment_date'] = now();
             $transaksi = Transaksi::create($post);
-            if($request->status == 'done'):
-                $transaksi->pelanggan = Pelanggan::find($transaksi->pelanggan_id);
-                if($transaksi->pelanggan) $this->whatsapp->transaksiTextSend($transaksi);
-            endif;
+            // if($request->status == 'done'):
+            //     $transaksi->pelanggan = Pelanggan::find($transaksi->pelanggan_id);
+            //     if($transaksi->pelanggan) $this->whatsapp->transaksiTextSend($transaksi);
+            // endif;
             $transaksi_detail = Arr::map($post['produk'], function ($produk) use ($transaksi) {
                 return [
                     'transaksi_id' => $transaksi->id,
@@ -184,8 +184,8 @@ class TransaksiController extends Controller
             $transaksi = Transaksi::with(['pelanggan', 'outlet'])->findOrfail($id);
             if($request->status == 'taken'):
                 $post['payment_date'] = now();
-            elseif($request->status == 'done'):
-                $response = $this->whatsapp->transaksiTextSend($transaksi);
+            // elseif($request->status == 'done'):
+            //     $response = $this->whatsapp->transaksiTextSend($transaksi);
             endif;
             if($post['lastStatus'] != $post['status']){
                 TransaksiStatus::insert([
