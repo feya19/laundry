@@ -1,2 +1,2 @@
 # laundry
-Build Laravel Laundry System Management with ❤
+Build Laravel Laundry Management System with ❤
